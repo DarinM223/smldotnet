@@ -1,4 +1,4 @@
-structure PrintManager :> PRINTMANAGER = 
+structure PrintManager :> PRINTMANAGER =
 struct
 
 val showGC = Controls.add false "env.gctime"
@@ -7,16 +7,17 @@ val verbose = Controls.add false "verbose"
 
 val startOfLine = ref true
 
-fun print s = 
+fun print s =
   (TextIO.print s; Debug.print s; startOfLine := false)
 
 fun printTime message timer =
 let
-  val t = Timer.checkCPUTimer timer
+  val gc = Timer.checkGCTime timer
+  val {usr, ...} = Timer.checkCPUTimer timer
 in
-  print (message ^ Time.toString (#usr t) ^ 
+  print (message ^ Time.toString usr ^
   (if Controls.get showGC
-   then "s including " ^ Time.toString (#gc t) ^ "s gc."
+   then "s including " ^ Time.toString gc ^ "s gc."
    else "s."))
 end
 
@@ -30,7 +31,7 @@ fun restart () = (level := 0; finished := false)
 
 val indentUnit = ref 2
 
-fun indent n = 
+fun indent n =
   let val m = n * !indentUnit
   in
     CharVector.tabulate(m, fn _ => #" ")
@@ -38,7 +39,7 @@ fun indent n =
 
 fun newline n = "\n" ^ indent n
 
-fun println s = 
+fun println s =
 (
   if !startOfLine
   then print (indent (!level) ^ s ^ "\n")
@@ -69,9 +70,9 @@ in
   let
     val result = (f ()) handle e => (level := currentlevel; raise e)
   in
-    level := currentlevel; 
+    level := currentlevel;
     if messages
-    then 
+    then
     (
       if !finished then lnprint ("...") else ();
       if Controls.get showTime then printTime "" timer else print "done.";
@@ -83,7 +84,7 @@ in
 end
 
 
-fun dump flag worker = 
+fun dump flag worker =
 if not (Controls.get flag) then ()
 else
 let

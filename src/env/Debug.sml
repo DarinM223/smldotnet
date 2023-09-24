@@ -6,9 +6,9 @@ val logFile = ref (NONE : TextIO.outstream option)
 val logHtml = ref false
 
 val _ = Commands.add "log"
-{ 
-  act = fn root => 
-        fn [(relname,NONE)] => 
+{
+  act = fn root =>
+        fn [(relname,NONE)] =>
         let
   	  val name = if OS.Path.isRelative relname
                      then OS.Path.concat(root, relname)
@@ -28,7 +28,7 @@ val _ = Commands.add "log"
          \  Query logging file"
 }
 
-fun print s = 
+fun print s =
   case !logFile of
     NONE => ()
   | SOME f => (TextIO.output(f, s); TextIO.flushOut f)
@@ -36,33 +36,34 @@ fun print s =
 fun finish () =
   case !logFile of
     NONE => ()
-  | SOME f => 
-    ( 
+  | SOME f =>
+    (
        if !logHtml then TextIO.output(f, "\n</pre></html>") else ();
-       TextIO.closeOut f; 
+       TextIO.closeOut f;
        logFile := NONE
     )
 
 fun time (f : 'a -> 'b) x =
 let
   val timer = Timer.startCPUTimer ()
-  val y = f x 
-  val t = Timer.checkCPUTimer timer
-in 
-  print ("Time elapsed = " ^ 
-    Time.toString (#usr t) ^ "s usr, " ^
-    Time.toString (#sys t) ^ "s sys, " ^
-    Time.toString (#gc t) ^ "s gc.\n");
+  val y = f x
+  val gc = Timer.checkGCTime timer
+  val {usr, sys} = Timer.checkCPUTimer timer
+in
+  print ("Time elapsed = " ^
+    Time.toString usr ^ "s usr, " ^
+    Time.toString sys ^ "s sys, " ^
+    Time.toString gc ^ "s gc.\n");
   y
 end
 
-fun start () = 
+fun start () =
   (
     finish ();
     case !logName of
       NONE => ()
-    | SOME name => 
-      let val { ext, ... } = OS.Path.splitBaseExt name   
+    | SOME name =>
+      let val { ext, ... } = OS.Path.splitBaseExt name
           val f = TextIO.openOut name
       in
         logFile := SOME f;
@@ -71,7 +72,7 @@ fun start () =
       end
   )
 
-fun fail message = 
+fun fail message =
   (print ("Compiler bug: " ^ message); raise Fail message)
 
 fun html () = !logHtml

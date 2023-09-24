@@ -1,6 +1,6 @@
 (*BUG: are we dealing with control codes \^@ -> \^_ correctly?
        george used to subract 32 --- I subtract 64 which appears to be
-       consistent with the Definition 
+       consistent with the Definition
 *)
 
 (* NOTE ON COMPATIBILITY.
@@ -11,11 +11,11 @@
    hack.  The way ML-Lex works, each action has access to the following
    variables:
 
-      Variable  Type   
+      Variable  Type
       yyb       string ref
       i0        index in !yyb of the start of the token
       i         index in !yyb of the character after the end of the token.
-   
+
    Thus there is usually no need to copy.
    ALL calls to functions TokenTable.lookup_XXXX take an argument
    which will be exactly of the following form:
@@ -24,20 +24,20 @@
    We also use the same trick to get at normal characters of strings.
    For this we use code exactly of the form
       "String.sub(!yyb,i0)"
- 
 
-   If the names or meanings of the variables yyb, i0, i change, search for 
+
+   If the names or meanings of the variables yyb, i0, i change, search for
    these strings and modify the code.  (Searching for "yyb" should find
    them all anyway).  It would be nice if
    ML-Lex would be changed to give access to variables (say) yybuffer,
-   yytextstart, yytextend instead. 
+   yytextstart, yytextend instead.
 
    We still use yytext in a number of cases.
    The most time-consuming are probably numerical constants.
    These get passed down as strings anyway.  (Since we don't
    know the type, the alternative would be to pass them as
    IntInfs which might actually be slower.)  We could save on creating
-   yytext for all integer and word constants which aren't just a 
+   yytext for all integer and word constants which aren't just a
    sequence of digits, but it doesn't seem worthwhile.
    The other main use is in string numerical escapes (\ddd or \udddd)
    which I hope are comparatively rare.
@@ -54,13 +54,13 @@
          a regular expression for a complete string constant.
          But this would involve parsing the string twice and also
          degrade errors correction, so I doubt if it's worth it.
-         
+
    *)
 
 
 (* User definitions section *)
 
-(* The next 4 lines are copied straight from the ML-Yacc manual; I don't 
+(* The next 4 lines are copied straight from the ML-Yacc manual; I don't
    understand them all
    *)
 type pos = FilePosition.pos
@@ -89,7 +89,7 @@ val bad_token=BAD(~1,~1) (* This is used in the HELDOVER state *)
 
 val bad_symbol=Symbol.symbolAsciiString("????")
 
-val held_over = ref bad_token 
+val held_over = ref bad_token
 
 (* End-of-file function *)
 fun eof()=
@@ -164,10 +164,10 @@ in
    token
 end
 
-fun suffix(s,n)=String.extract(s,n,NONE)   
+fun suffix(s,n)=String.extract(s,n,NONE)
 
 
-(* definitions section.  
+(* definitions section.
    ml-lex is objecting to be putting comments in it so here they are.
    ws1 is space/tab/form-feed.
    An id is something to be looked up with TokenTable.lookup_id.
@@ -233,21 +233,21 @@ mlj_id= _{alpha_id};
 <INITIAL>"_" => (WILD(yypos,yypos+1));
 <INITIAL>"|" => (BAR(yypos,yypos+1));
 
-<INITIAL>{mlj_id} => 
+<INITIAL>{mlj_id} =>
    ((* MLJ reserved words, and also _ followed by other keywords *)
 
     case TokenTable.lookup_underline
-      ({characters= !yyb,initial=i0,length=i-i0,position=yypos},!LexState.frozen) 
+      ({characters= !yyb,initial=i0,length=i-i0,position=yypos},!LexState.frozen)
    of
       TokenTable.ONE tok => tok
-   |  TokenTable.TWO tok => 
+   |  TokenTable.TWO tok =>
          (held_over:=tok;YYBEGIN HELDOVER;WILD(yypos,yypos+1))
    );
-<HELDOVER>{ws} => 
-  (let 
-      val ho= !held_over 
-      val ()= held_over:=bad_token 
-(* It should be possible to remove this statement; it is there to cause 
+<HELDOVER>{ws} =>
+  (let
+      val ho= !held_over
+      val ()= held_over:=bad_token
+(* It should be possible to remove this statement; it is there to cause
    trouble if the caller tries to change lexers in midstream *)
    in
       (YYBEGIN INITIAL;ho)
@@ -274,17 +274,17 @@ mlj_id= _{alpha_id};
 <INITIAL>{word_hex_constant} =>
    (SCON(SCon.NumCon(ICF.Hex,ICF.Unsigned,suffix(yytext,3)),
       yypos,yypos+size yytext));
-<INITIAL>{real_constant} => 
+<INITIAL>{real_constant} =>
    (SCON(SCon.RealCon yytext,yypos,yypos+size yytext));
 
 <INITIAL>".##" => (YYBEGIN AFTERDOT;DOTHASHHASH(yypos,yypos+3));
 <INITIAL>".#" => (YYBEGIN AFTERDOT;DOTHASH(yypos,yypos+2));
 <INITIAL>"." => (YYBEGIN AFTERDOT;DOT(yypos,yypos+1));
 
-<AFTERDOT>{general_alpha_id} => 
+<AFTERDOT>{general_alpha_id} =>
    (YYBEGIN INITIAL;TokenTable.lookup_alpha_unreserved
       {characters= !yyb,initial=i0,length=i-i0,position=yypos});
-<AFTERDOT>{unbacksymbolic_id} => 
+<AFTERDOT>{unbacksymbolic_id} =>
    (YYBEGIN INITIAL;TokenTable.lookup_symbolic_unreserved
       {characters= !yyb,initial=i0,length=i-i0,position=yypos});
 <AFTERDOT>` =>
@@ -292,15 +292,15 @@ mlj_id= _{alpha_id};
     string_type:=LexState.JAVASYMBOL;
     string_start:=yypos;
     continue());
- 
-<AFTERDOT>. => 
+
+<AFTERDOT>. =>
    (err(Error.error({left=yypos,right=yypos},
     "Missing identifier after ."));
     YYBEGIN INITIAL;
     ALPHA(bad_symbol,yypos,yypos)
     );
 
-<INITIAL>"(*" => 
+<INITIAL>"(*" =>
    (YYBEGIN COMMENT;
     LexState.comment_level:=1;
     LexState.comment_start:=yypos;
@@ -317,22 +317,22 @@ mlj_id= _{alpha_id};
        continue()
     end
     );
-<COMMENT>. => (continue()); 
-<INITIAL>"*)" => 
+<COMMENT>. => (continue());
+<INITIAL>"*)" =>
    (LexState.err(Error.error({left=yypos,right=yypos+2},
       "*\041 not permitted outside comments"));
 (* ML-Lex bracket counts parentheses in strings! *)
     continue()
     );
 
-<INITIAL>\" => 
+<INITIAL>\" =>
   (
    (* Character and string constants.  These are dealt with by a similar
       trick to SML/NJ; we lump them together and keep a variable
       string_type which reveals what we are doing.  The only slight
       complication is that we also have to cope with Java backquoted
       symbols.  We allow double quotes to occur in Java backquoted
-      symbols and back quotes to occur in string constants. 
+      symbols and back quotes to occur in string constants.
       We allow \' in both backquoted constants and string constants.
       *)
    YYBEGIN STRING;
@@ -345,37 +345,37 @@ mlj_id= _{alpha_id};
    string_start:=yypos;
    continue());
 
-<STRING>\\a => 
+<STRING>\\a =>
   (string_contents:= 0w7:: !string_contents;
    continue()
    );
-<STRING>\\b => 
+<STRING>\\b =>
   (string_contents:= 0w8:: !string_contents;
    continue()
    );
-<STRING>\\t => 
+<STRING>\\t =>
   (string_contents:= 0w9:: !string_contents;
    continue()
    );
-<STRING>\\n => 
+<STRING>\\n =>
   (string_contents:= 0w10:: !string_contents;
    continue()
    );
-<STRING>\\v => 
+<STRING>\\v =>
   (string_contents:= 0w11:: !string_contents;
    continue()
    );
-<STRING>\\f => 
+<STRING>\\f =>
   (string_contents:= 0w12:: !string_contents;
    continue()
    );
-<STRING>\\r => 
+<STRING>\\r =>
   (string_contents:= 0w13:: !string_contents;
    continue()
    );
-<STRING>\\\^[@-_] => 
+<STRING>\\\^[@-_] =>
   (string_contents:=
-      (Word.fromInt(Char.ord(String.sub(yytext,2)))-0w64) 
+      (Word.fromInt(Char.ord(String.sub(yytext,2)))-0w64)
       :: !string_contents;
    continue()
    );
@@ -416,7 +416,7 @@ mlj_id= _{alpha_id};
    continue()
    );
 <STRINGSKIP>\\ => (YYBEGIN STRING;continue());
-<STRINGSKIP>. => 
+<STRINGSKIP>. =>
    (err(Error.error({left= !string_start,right=yypos},
     "Illegal \\[whitespace] escape in "^(cors())^" constant"));
     YYBEGIN STRING;
@@ -454,7 +454,7 @@ mlj_id= _{alpha_id};
    string_contents:=
       Word.fromInt(Char.ord(
          String.sub(!yyb,i0)
-         )) 
+         ))
       :: !string_contents;
    continue()
    );
@@ -472,7 +472,7 @@ mlj_id= _{alpha_id};
    (err(Error.error({left=yypos,right=yypos},"Illegal character"));
     continue());
 
-      
+
 
 
 

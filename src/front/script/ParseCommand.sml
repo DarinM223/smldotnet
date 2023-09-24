@@ -6,7 +6,7 @@ struct
 
 structure C = CommandSyntax
 
-datatype Result = 
+datatype Result =
   Success of CommandSyntax.Command list
 | Failure of Error.Error list
 
@@ -23,7 +23,7 @@ let
   val sourcemap=SourceMap.new(filename)
   val posOf = #2 o Substring.base
   fun pos (s1,s2) = {left=posOf s1, right=posOf s2}
-  fun error (s1,s2) message = 
+  fun error (s1,s2) message =
   let
     val error = Error.error (pos (s1,s2), message)
   in
@@ -47,21 +47,21 @@ let
     SOME (#"\n", s) =>
     SOME s
 
-  | SOME (c, s) => 
+  | SOME (c, s) =>
     skipLine s
 
-  | NONE => 
+  | NONE =>
     NONE
 
   (* Skip while predicate true *)
   fun skip pred s =
   case getc s of
-    SOME (c, s') => 
+    SOME (c, s') =>
     if pred c then skip pred s'
     else s
 
-  | NONE => 
-    s  
+  | NONE =>
+    s
 
   (* Skip whitespace, including newlines *)
   val skipWSNL = skip Char.isSpace
@@ -97,12 +97,12 @@ let
   end
 
   (* Strip leading and trailing spaces from a string *)
-  fun strip s = Substring.string (Substring.dropr Char.isSpace 
-               (Substring.dropl Char.isSpace (Substring.all s)))
+  fun strip s = Substring.string (Substring.dropr Char.isSpace
+               (Substring.dropl Char.isSpace (Substring.full s)))
 
   (* Read a quoted string *)
   (*@todo: escape mechanism? *)
-  fun parseQuoted starts =  
+  fun parseQuoted starts =
   let
     fun parseQuoted' s acc =
     case getc s of
@@ -163,8 +163,8 @@ let
     isCommandChar c orelse c= #"?"
 
   (* Parse an identifier *)
-  fun parseId s =  
-  let 
+  fun parseId s =
+  let
     fun parseId' s acc =
     let
       fun return s =
@@ -182,8 +182,8 @@ let
   end
 
   (* Parse an alphabetic command *)
-  fun parseAlphabeticCommand (initialc,s) =  
-  let 
+  fun parseAlphabeticCommand (initialc,s) =
+  let
     fun parseAlpha s acc =
     let
       fun return (arg, s) =
@@ -194,14 +194,14 @@ let
         fun returnInt s =
         case Int.fromString (String.implode (rev acc)) of
           NONE => error (start, s) "Invalid integer constant"
-        | SOME n => return (C.Int n, s) 
+        | SOME n => return (C.Int n, s)
         fun parseDigits' s acc =
           case getc s of
             NONE => returnInt s
           | SOME (c, s) =>
-            if Char.isDigit c 
+            if Char.isDigit c
             then parseDigits' s (c::acc)
-            else 
+            else
             if Char.isSpace c then returnInt s
             else error (start, s) "Syntax error"
       in
@@ -209,7 +209,7 @@ let
       end
 
       fun parseList s acc =
-      let 
+      let
         fun returnList s = return (C.List (rev acc), s)
       in
         case getc s of
@@ -224,13 +224,13 @@ let
 
         | SOME (c, s') =>
           if Char.isSpace c
-          then returnList s 
-          else 
+          then returnList s
+          else
           let val (arg,s') = parseMaybeQuoted (fn c => Char.isSpace c orelse c = #"," orelse c = #"=") s
-          in 
+          in
             case getc (skipWS s') of
-              SOME(#"=", s'') => 
-              let               
+              SOME(#"=", s'') =>
+              let
                 val (rhs, s''') = parseMaybeQuoted (fn c => Char.isSpace c orelse c = #",") (skipWSNL s'')
               in
                 case getc (skipWS s''') of
@@ -246,15 +246,15 @@ let
             | _ =>
               parseList s' ((arg,NONE)::acc)
           end
-      end    
+      end
 
       fun parseArgs s =
       let val command = String.implode (map Char.toLower (rev acc))
-      in 
-        if command = "run" orelse command = "cmd" 
+      in
+        if command = "run" orelse command = "cmd"
         then let val (arg,s') = parseMaybeQuoted (fn c => c = #"\n") s
         in return (C.List [(arg,NONE)], s') end
-        else        
+        else
         case getc s of
         SOME (c, s') =>
         if Char.isDigit c
@@ -299,7 +299,7 @@ let
   in
     parseAlpha s [initialc]
   end
-      
+
   fun parseCommand commands s =
   case getc s of
     (* Run a script: name of file follows, whitespace terminates *)
@@ -334,7 +334,7 @@ let
       NONE => error (s,s') "Syntax error"
     | SOME (c, s'') =>
       if isInitialCommandChar c
-      then 
+      then
       let
         val (command, s''') = parseAlphabeticCommand (c,s'')
       in
@@ -348,7 +348,7 @@ let
       NONE => error (s,s') "Syntax error"
     | SOME (c, s'') =>
       if isInitialCommandChar c
-      then 
+      then
       let
         val (command, s''') = parseAlphabeticCommand (c,s'')
       in
@@ -361,7 +361,7 @@ let
       NONE => error (s,s') "Syntax error"
     | SOME (c, s'') =>
       if isInitialCommandChar c
-      then 
+      then
       let
         val (command, s''') = parseAlphabeticCommand (c,s'')
       in
@@ -373,17 +373,17 @@ let
   | SOME (c, s') =>
     if Char.isSpace c
     then parseCommand commands s'
-    else 
+    else
       if mode<>C.CommandLine andalso isInitialCommandChar c
-      then 
+      then
       let val (command, s'') = parseAlphabeticCommand (c,s')
       in
         parseCommand ((pos(s,s''),command)::commands) s''
-      end      
+      end
       else if mode=C.CommandLine andalso Char.isAlpha c
-      then 
+      then
       let val (id, s') = parseId s
-      in 
+      in
         parseCommand ((pos(s,s'),C.Id id)::commands) s'
       end
       else error (s,s) "Syntax error"
@@ -392,9 +392,9 @@ let
     rev commands
 
 in
-  (sourcemap, 
-    (Success (parseCommand [] (Substring.all s))) 
-    handle ScriptParseError error => 
+  (sourcemap,
+    (Success (parseCommand [] (Substring.full s)))
+    handle ScriptParseError error =>
     Failure ([error]))
 end
 
