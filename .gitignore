@@ -1,3 +1,11 @@
 .cm/
+*.dll
+*.mdb
 *.grm.*
 *.lex.sml
+.smlnetdep
+.smlnetobj
+*.exe
+*.il
+bin/smlnet.x86-linux
+bin/v2.0-api
