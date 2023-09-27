@@ -22,6 +22,37 @@ compatible with the initial 1.0 and 1.1 releases.
 Although SML.NET fully  supports SML polymorphism,
 it does not yet produce or consume .NET generics
 
+SML.NET also runs on Linux with Mono. To install
+and configure Mono on Ubuntu for SML.NET, run the
+following:
+
+```
+sudo apt-get install mono-complete
+cd /usr/lib/mono
+sudo ln -s 2.0-api v2.0-api
+cd v2.0-api
+sudo ln -s /usr/bin/mono-csc ./csc.exe
+sudo ln -s /usr/bin/ilasm ./ilasm.exe
+```
+
+SML.NET requires the version name to start with
+a `v` so a symbolic links are created for it and
+the `csc.exe` and `ilasm.exe` executables.
+
+Finally, you need to set the `SMLNETPATH`
+environment variable to the project's root
+directory and these environment variables:
+
+```
+export FrameworkDir=/usr/lib/mono
+export FrameworkVersion=v2.0-api
+```
+
+Warning: if the SML.NET compiled versions of
+`ml-lex` and `ml-yacc` only work on files without
+Windows style line endings. So you should run
+`dos2unix` on `.lex` and `.grm` files first.
+
 Features
 --------
 
