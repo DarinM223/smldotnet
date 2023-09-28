@@ -1,0 +1,369 @@
+
+ann
+  "nonexhaustiveBind ignore" "nonexhaustiveMatch warn"
+  "redundantBind warn" "redundantMatch warn"
+  "sequenceNonUnit ignore"
+  "warnUnused false" "forceUsed"
+in
+
+local
+  basis l33 =
+    bas
+      (* $/basis.cm ====> *) $(SML_LIB)/basis/basis.mlb $(SML_LIB)/basis/sml-nj.mlb
+    end
+  basis l75 =
+    bas
+      (* $/smlnj-lib.cm ====> *) $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
+    end
+  basis l44 =
+    bas
+      (* $/ml-lpt-lib.cm ====> *) $(SML_LIB)/mllpt-lib/mllpt-lib.mlb
+    end
+in
+local
+   $(SML_LIB)/basis/pervasive.mlb
+   local
+      open l33
+   in
+      structure gs_0 = Char
+      structure gs_1 = CharArray
+      structure gs_2 = CharVector
+      structure gs_3 = FixedInt
+      structure gs_4 = General
+      structure gs_5 = Int
+      structure gs_6 = Int32
+      structure gs_7 = Int64
+      structure gs_8 = IntInf
+      structure gs_9 = LargeInt
+      structure gs_10 = LargeReal
+      structure gs_11 = LargeWord
+      structure gs_12 = OS
+      structure gs_13 = Position
+      structure gs_14 = Real
+      structure gs_15 = Real64
+      structure gs_16 = RealArray
+      structure gs_17 = RealArraySlice
+      structure gs_18 = RealVector
+      structure gs_19 = RealVectorSlice
+      structure gs_20 = SMLofNJ
+      structure gs_21 = Socket
+      structure gs_22 = String
+      structure gs_23 = Substring
+      structure gs_24 = SysWord
+      structure gs_25 = Time
+      structure gs_26 = Word
+      structure gs_27 = Word32
+      structure gs_28 = Word64
+      structure gs_29 = Word8
+   end
+   local
+      open l33
+   in
+      structure gs_30 = TextIO
+   end
+   local
+      open l33
+   in
+      structure gs_31 = List
+   end
+   local
+      open l44
+   in
+      structure gs_32 = UTF8
+   end
+   local
+      structure Char = gs_0
+      structure CharArray = gs_1
+      structure CharVector = gs_2
+      structure FixedInt = gs_3
+      structure General = gs_4
+      structure Int = gs_5
+      structure Int32 = gs_6
+      structure Int64 = gs_7
+      structure IntInf = gs_8
+      structure LargeInt = gs_9
+      structure LargeReal = gs_10
+      structure LargeWord = gs_11
+      structure List = gs_31
+      structure OS = gs_12
+      structure Position = gs_13
+      structure Real = gs_14
+      structure Real64 = gs_15
+      structure RealArray = gs_16
+      structure RealArraySlice = gs_17
+      structure RealVector = gs_18
+      structure RealVectorSlice = gs_19
+      structure SMLofNJ = gs_20
+      structure Socket = gs_21
+      structure String = gs_22
+      structure Substring = gs_23
+      structure SysWord = gs_24
+      structure Time = gs_25
+      structure UTF8 = gs_32
+      structure Word = gs_26
+      structure Word32 = gs_27
+      structure Word64 = gs_28
+      structure Word8 = gs_29
+      json-tokens.sml
+   in
+      structure gs_33 = JSONTokens
+   end
+   local
+      open l33
+   in
+      structure gs_34 = Vector
+   end
+   local
+      open l44
+   in
+      structure gs_35 = AntlrStreamPos
+   end
+   local
+      open l33
+   in
+      structure gs_36 = StringCvt
+   end
+   local
+      open l44
+   in
+      structure gs_37 = ULexBuffer
+   end
+   local
+      structure AntlrStreamPos = gs_35
+      structure Char = gs_0
+      structure CharArray = gs_1
+      structure CharVector = gs_2
+      structure FixedInt = gs_3
+      structure General = gs_4
+      structure Int = gs_5
+      structure Int32 = gs_6
+      structure Int64 = gs_7
+      structure IntInf = gs_8
+      structure JSONTokens = gs_33
+      structure LargeInt = gs_9
+      structure LargeReal = gs_10
+      structure LargeWord = gs_11
+      structure List = gs_31
+      structure OS = gs_12
+      structure Position = gs_13
+      structure Real = gs_14
+      structure Real64 = gs_15
+      structure RealArray = gs_16
+      structure RealArraySlice = gs_17
+      structure RealVector = gs_18
+      structure RealVectorSlice = gs_19
+      structure SMLofNJ = gs_20
+      structure Socket = gs_21
+      structure String = gs_22
+      structure StringCvt = gs_36
+      structure Substring = gs_23
+      structure SysWord = gs_24
+      structure TextIO = gs_30
+      structure Time = gs_25
+      structure ULexBuffer = gs_37
+      structure UTF8 = gs_32
+      structure Vector = gs_34
+      structure Word = gs_26
+      structure Word32 = gs_27
+      structure Word64 = gs_28
+      structure Word8 = gs_29
+      json.lex.sml
+   in
+      structure gs_38 = JSONLexer
+   end
+   local
+      structure AntlrStreamPos = gs_35
+      structure JSONLexer = gs_38
+      structure JSONTokens = gs_33
+      structure TextIO = gs_30
+      json-source.sml
+   in
+      structure gs_39 = JSONSource
+   end
+   local
+      structure Char = gs_0
+      structure CharArray = gs_1
+      structure CharVector = gs_2
+      structure FixedInt = gs_3
+      structure General = gs_4
+      structure Int = gs_5
+      structure Int32 = gs_6
+      structure Int64 = gs_7
+      structure IntInf = gs_8
+      structure JSONLexer = gs_38
+      structure JSONSource = gs_39
+      structure JSONTokens = gs_33
+      structure LargeInt = gs_9
+      structure LargeReal = gs_10
+      structure LargeWord = gs_11
+      structure OS = gs_12
+      structure Position = gs_13
+      structure Real = gs_14
+      structure Real64 = gs_15
+      structure RealArray = gs_16
+      structure RealArraySlice = gs_17
+      structure RealVector = gs_18
+      structure RealVectorSlice = gs_19
+      structure SMLofNJ = gs_20
+      structure Socket = gs_21
+      structure String = gs_22
+      structure Substring = gs_23
+      structure SysWord = gs_24
+      structure TextIO = gs_30
+      structure Time = gs_25
+      structure Word = gs_26
+      structure Word32 = gs_27
+      structure Word64 = gs_28
+      structure Word8 = gs_29
+      json-stream-parser.sml
+   in
+      structure gs_40 = JSONStreamParser
+   end
+   local
+      open l75
+   in
+      structure gs_41 = Format
+   end
+   local
+      structure Char = gs_0
+      structure CharArray = gs_1
+      structure CharVector = gs_2
+      structure FixedInt = gs_3
+      structure Format = gs_41
+      structure General = gs_4
+      structure Int = gs_5
+      structure Int32 = gs_6
+      structure Int64 = gs_7
+      structure IntInf = gs_8
+      structure LargeInt = gs_9
+      structure LargeReal = gs_10
+      structure LargeWord = gs_11
+      structure List = gs_31
+      structure OS = gs_12
+      structure Position = gs_13
+      structure Real = gs_14
+      structure Real64 = gs_15
+      structure RealArray = gs_16
+      structure RealArraySlice = gs_17
+      structure RealVector = gs_18
+      structure RealVectorSlice = gs_19
+      structure SMLofNJ = gs_20
+      structure Socket = gs_21
+      structure String = gs_22
+      structure Substring = gs_23
+      structure SysWord = gs_24
+      structure TextIO = gs_30
+      structure Time = gs_25
+      structure UTF8 = gs_32
+      structure Word = gs_26
+      structure Word32 = gs_27
+      structure Word64 = gs_28
+      structure Word8 = gs_29
+      json-stream-printer.sml
+   in
+      structure gs_42 = JSONStreamPrinter
+   end
+   local
+      structure Char = gs_0
+      structure CharArray = gs_1
+      structure CharVector = gs_2
+      structure FixedInt = gs_3
+      structure General = gs_4
+      structure Int = gs_5
+      structure Int32 = gs_6
+      structure Int64 = gs_7
+      structure IntInf = gs_8
+      structure LargeInt = gs_9
+      structure LargeReal = gs_10
+      structure LargeWord = gs_11
+      structure OS = gs_12
+      structure Position = gs_13
+      structure Real = gs_14
+      structure Real64 = gs_15
+      structure RealArray = gs_16
+      structure RealArraySlice = gs_17
+      structure RealVector = gs_18
+      structure RealVectorSlice = gs_19
+      structure SMLofNJ = gs_20
+      structure Socket = gs_21
+      structure String = gs_22
+      structure Substring = gs_23
+      structure SysWord = gs_24
+      structure Time = gs_25
+      structure Word = gs_26
+      structure Word32 = gs_27
+      structure Word64 = gs_28
+      structure Word8 = gs_29
+      json.sml
+   in
+      structure gs_43 = JSON
+   end
+   local
+      structure Char = gs_0
+      structure CharArray = gs_1
+      structure CharVector = gs_2
+      structure FixedInt = gs_3
+      structure General = gs_4
+      structure Int = gs_5
+      structure Int32 = gs_6
+      structure Int64 = gs_7
+      structure IntInf = gs_8
+      structure JSON = gs_43
+      structure LargeInt = gs_9
+      structure LargeReal = gs_10
+      structure LargeWord = gs_11
+      structure List = gs_31
+      structure OS = gs_12
+      structure Position = gs_13
+      structure Real = gs_14
+      structure Real64 = gs_15
+      structure RealArray = gs_16
+      structure RealArraySlice = gs_17
+      structure RealVector = gs_18
+      structure RealVectorSlice = gs_19
+      structure SMLofNJ = gs_20
+      structure Socket = gs_21
+      structure String = gs_22
+      structure Substring = gs_23
+      structure SysWord = gs_24
+      structure Time = gs_25
+      structure Vector = gs_34
+      structure Word = gs_26
+      structure Word32 = gs_27
+      structure Word64 = gs_28
+      structure Word8 = gs_29
+      json-util.sml
+   in
+      structure gs_44 = JSONUtil
+   end
+   local
+      structure JSON = gs_43
+      structure JSONLexer = gs_38
+      structure JSONSource = gs_39
+      structure JSONTokens = gs_33
+      structure List = gs_31
+      structure TextIO = gs_30
+      json-parser.sml
+   in
+      structure gs_45 = JSONParser
+   end
+   local
+      structure JSON = gs_43
+      structure JSONStreamPrinter = gs_42
+      structure List = gs_31
+      structure TextIO = gs_30
+      json-printer.sml
+   in
+      structure gs_46 = JSONPrinter
+   end
+in
+   structure JSON = gs_43
+   structure JSONParser = gs_45
+   structure JSONPrinter = gs_46
+   structure JSONStreamParser = gs_40
+   structure JSONStreamPrinter = gs_42
+   structure JSONUtil = gs_44
+end
+end
+
+end
