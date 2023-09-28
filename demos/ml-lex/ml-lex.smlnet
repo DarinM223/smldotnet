@@ -1,4 +1,4 @@
-functor RedBlack = lexgen.sml
+@..\..\lib\smlnj-lib\Util\Util.smlnet
 signature LEXGEN = lexgen.sml
 structure LexGen = lexgen.sml
 out ml-lex.exe
