@@ -4,8 +4,8 @@ struct
 exception Empty
 datatype list = datatype Datatypes.list
 
-local 
-  open General Option PrimUtils_.Int 
+local
+  open General Option PrimUtils_.Int
 in
 
 fun revAppend ([], ys) = ys
@@ -30,22 +30,22 @@ fun last []       = raise Empty
   | last (x::xs)  = last xs
 
 fun nth (xs, n) =
-let 
+let
   fun nth' ([], _) = raise General.Subscript
     | nth' (x::xs, n) = case n of 0 => x | _ => nth'(xs, n-1)
-in 
-  if n < 0 then raise General.Subscript 
-  else nth' (xs, n) 
+in
+  if n < 0 then raise General.Subscript
+  else nth' (xs, n)
 end
 
 fun drop (xs, n) =
-let 
+let
   fun drop' (xs, 0) = xs
     | drop' ([], n) = raise General.Subscript
     | drop' (x::xs, n) = drop' (xs, n-1)
-in 
-  if n<0 then raise General.Subscript 
-  else drop' (xs, n) 
+in
+  if n<0 then raise General.Subscript
+  else drop' (xs, n)
 end
 
 fun take (xs, n) =
@@ -62,12 +62,12 @@ fun length xs =
 let
   fun length' ([], k) = k
     | length' (x::xs, k) = length' (xs, k+1)
-in 
+in
   length' (xs, 0)
 end
 
 fun concat [] = []
-  | concat (xs::xss) = 
+  | concat (xs::xss) =
     let
       fun concat' ([], xss) = concat xss
         | concat' (x::xs, xss) = x :: concat'(xs,xss)
@@ -116,7 +116,7 @@ let
         val b = p x
         val (yes, no) = partition' xs
       in
-        if b then (x::yes,no) 
+        if b then (x::yes,no)
              else (yes, x::no)
       end
 in
@@ -146,6 +146,11 @@ end
 fun getItem [] = NONE
   | getItem (x::xs) = SOME (x,xs)
 
+fun collate _   ([], []) = General.EQUAL
+  | collate _   ([], _) = General.LESS
+  | collate _   (_, []) = General.GREATER
+  | collate cmp (a::b, c::d) =
+      (case cmp (a, c) of General.EQUAL => collate cmp (b, d) | notEqual => notEqual)
 end
 
 end

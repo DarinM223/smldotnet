@@ -14,11 +14,11 @@ val nth        : 'a list * int -> 'a                    (* Subscript *)
 val take       : 'a list * int -> 'a list               (* Subscript *)
 val drop       : 'a list * int -> 'a list               (* Subscript *)
 
-val length     : 'a list -> int 
+val length     : 'a list -> int
 
-val getItem    : 'a list -> ('a * 'a list) option 
+val getItem    : 'a list -> ('a * 'a list) option
 
-val rev        : 'a list -> 'a list 
+val rev        : 'a list -> 'a list
 
 val @          : 'a list * 'a list -> 'a list
 val concat     : 'a list list -> 'a list
@@ -39,5 +39,7 @@ val exists     : ('a -> bool) -> 'a list -> bool
 val all        : ('a -> bool) -> 'a list -> bool
 
 val tabulate   : int * (int -> 'a) -> 'a list           (* Size      *)
+
+val collate : ('a * 'a -> order) -> 'a list * 'a list -> order
 
 end

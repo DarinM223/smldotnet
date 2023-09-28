@@ -5,7 +5,7 @@ structure OS :> OS where type Process.status = int =
 (*@TODO: restore uses of Prim.unsafeValOf *)
 struct
 
-local 
+local
   open General Option List Bool
   open Datatypes (*@HACK *)
   val op= = Prim.=
@@ -13,7 +13,7 @@ in
 
 (* Use POSIX names here just for convention's sake *)
 datatype syserror = noent | acces | exist | notdir
-exception SysErr of (string * syserror option) 
+exception SysErr of (string * syserror option)
 
 fun errorMsg noent = "No such file or directory"
   | errorMsg acces = "Permission denied"
@@ -38,24 +38,24 @@ fun unknownsyserr message = raise SysErr (message, NONE)
 (*----------------------------------------------------------------------*)
 (* Paths								*)
 (*----------------------------------------------------------------------*)
-structure Path :> OS_PATH = 
-struct 
+structure Path :> OS_PATH =
+struct
 
-exception Path 
+exception Path
 exception InvalidArc
 
 (* These are common to both Unix and Windows *)
 val parentArc  = ".."
 val currentArc = "."
 
-local 
+local
     val op @ = List.@
     infix 9 sub
     val op sub = String.sub
     val substring = String.extract
     val op ^ = String.^
 
-val slashChar = System.IO.Path.DirectorySeparatorChar 
+val slashChar = System.IO.Path.DirectorySeparatorChar
 
 val slash = String.str slashChar
 
@@ -67,16 +67,16 @@ fun isslash c = c = slashChar
 
 
 fun splitabsvolrest s =
-    if isDOS andalso Int.>=(String.size s, 2) andalso s sub 1 = #":" 
+    if isDOS andalso Int.>=(String.size s, 2) andalso s sub 1 = #":"
     then
       if Int.>=(String.size s, 3) andalso isslash (s sub 2) then
           (true, substring(s, 0, SOME 2), substring (s, 3, NONE))
       else
           (false, substring(s, 0, SOME 2), substring (s, 2, NONE))
     else
-      if Int.>=(String.size s, 1) andalso isslash (s sub 0) then 
-          (true, "", substring(s, 1, NONE)) 
-      else 
+      if Int.>=(String.size s, 1) andalso isslash (s sub 0) then
+          (true, "", substring(s, 1, NONE))
+      else
           (false, "", s)
 
 in
@@ -85,54 +85,54 @@ fun isAbsolute p = #1 (splitabsvolrest p)
 
 fun isRelative p = not (isAbsolute p);
 
-fun fromString p = 
+fun fromString p =
     case splitabsvolrest p of
 
         (false, v,   "") => {isAbs=false, vol = v, arcs = []}
 
-      | (isAbs, v, rest) => {isAbs=isAbs, vol = v, 
+      | (isAbs, v, rest) => {isAbs=isAbs, vol = v,
                              arcs = String.fields isslash rest};
 
-fun isRoot p = 
+fun isRoot p =
     case splitabsvolrest p of
         (true, _, "") => true
       | _             => false
 
 fun getVolume p = #2 (splitabsvolrest p)
 
-(*@NOTE: according to the revised Basis, [validVolume{isAbs=isAbs,vol=""}=not(isAbs)] on DOS (only), 
-         but this disagrees with all implementations and the convention (AFAIK) that a path 
+(*@NOTE: according to the revised Basis, [validVolume{isAbs=isAbs,vol=""}=not(isAbs)] on DOS (only),
+         but this disagrees with all implementations and the convention (AFAIK) that a path
          with prefix [\\] is rooted (ie. absolute) in DOS *)
-fun validVolume{isAbs, vol} = 
+fun validVolume{isAbs, vol} =
   (if isDOS
-   then 
-     (String.size vol = 2 andalso Char.isAlpha(vol sub 0) andalso vol sub 1 = #":") 
+   then
+     (String.size vol = 2 andalso Char.isAlpha(vol sub 0) andalso vol sub 1 = #":")
       orelse vol = ""
    else vol="")
 
 fun toString (path as {isAbs, vol, arcs}) =
-    let 
-	fun h []        res = res 
+    let
+	fun h []        res = res
           | h (a :: ar) res = h ar (a :: slash :: res)
-    in  
-        if validVolume{isAbs=isAbs, vol=vol} then 
+    in
+        if validVolume{isAbs=isAbs, vol=vol} then
             case (isAbs, arcs) of
 
                 (false, []         ) => vol
               | (false, "" :: _    ) => raise Path
-              | (false, a1 :: arest) => 
+              | (false, a1 :: arest) =>
                     String.concat (vol :: List.rev (h arest [a1]))
 
               | (true,  []         ) => vol ^ volslash
-              | (true, a1 :: arest ) => 
-                    String.concat (List.rev (h arest [a1, volslash, vol])) 
+              | (true, a1 :: arest ) =>
+                    String.concat (List.rev (h arest [a1, volslash, vol]))
         else
             raise Path
     end;
 
 
 fun concat (p1, p2) =
-    let fun stripslash path = 
+    let fun stripslash path =
             if isslash (path sub (Int.-(String.size path, 1))) then
                 substring(path, 0, SOME(Int.-(String.size path, 1)))
             else path
@@ -150,8 +150,8 @@ fun concat (p1, p2) =
 
 fun getParent p =
     let open List
-	val {isAbs, vol, arcs} = fromString p 
-	fun getpar xs = 
+	val {isAbs, vol, arcs} = fromString p
+	fun getpar xs =
 	    rev (case rev xs of
 		     []              => [parentArc]
 		   | [""]            => if isAbs then [] else [parentArc]
@@ -160,8 +160,8 @@ fun getParent p =
 		   | ".." :: revrest => parentArc :: parentArc :: revrest
 		   | last :: revrest => revrest)
     in
-        case getpar arcs of 
-            []   => 
+        case getpar arcs of
+            []   =>
                 if isAbs then toString {isAbs=true, vol=vol, arcs=[""]}
                 else currentArc
           | arcs => toString {isAbs=isAbs, vol=vol, arcs=arcs}
@@ -170,12 +170,12 @@ fun getParent p =
 
 
 fun mkCanonical p =
-    let val {isAbs, vol, arcs} = fromString p 
+    let val {isAbs, vol, arcs} = fromString p
         fun mkCanonicalArc arc = if isDOS then String.map Char.toLower arc else arc
         fun backup []          = if isAbs then [] else [parentArc]
           | backup (".."::res) = parentArc :: parentArc :: res
           | backup ( _ :: res) = res
-        fun reduce arcs = 
+        fun reduce arcs =
             let fun h []         []  = if isAbs then [""] else [currentArc]
                   | h []         res = res
                   | h (""::ar)   res = h ar res
@@ -204,9 +204,9 @@ fun mkRelative {path=p1, relativeTo=p2} =
                     if a11=a21 then h a1r a2r
                     else parentize a2 @ (if arcs1 = [""] then [] else a1)
             in
-                if Prim.=(vol1, vol2) 
+                if Prim.=(vol1, vol2)
                 then toString {isAbs=false, vol="", arcs=h arcs1 arcs2}
-                else raise Path 
+                else raise Path
             end;
 
 
@@ -221,14 +221,14 @@ fun joinDirFile {dir, file} = concat(dir, file)
 
 fun splitDirFile p =
     let open List
-        val {isAbs, vol, arcs} = fromString p 
+        val {isAbs, vol, arcs} = fromString p
     in
         case rev arcs of
-            []            => 
+            []            =>
                 {dir = toString {isAbs=isAbs, vol=vol, arcs=[]}, file = ""  }
 
-          | arcn :: farcs => 
-                {dir = toString {isAbs=isAbs, vol=vol, arcs=rev farcs}, 
+          | arcn :: farcs =>
+                {dir = toString {isAbs=isAbs, vol=vol, arcs=rev farcs},
                  file = arcn}
 
     end
@@ -240,15 +240,15 @@ fun joinBaseExt {base, ext = NONE}    = base
 
 fun splitBaseExt s =
     let val {dir, file} = splitDirFile s
-        open Substring 
-        val (fst, snd) = splitr (fn #"." => false | _ => true) (all file)
-    in 
-        if isEmpty snd         (* dot at right end     *) 
+        open Substring
+        val (fst, snd) = splitr (fn #"." => false | _ => true) (full file)
+    in
+        if isEmpty snd         (* dot at right end     *)
            orelse isEmpty fst  (* no dot               *)
-           orelse size fst = 1 (* dot at left end only *) 
+           orelse size fst = 1 (* dot at left end only *)
             then {base = s, ext = NONE}
-        else 
-            {base = joinDirFile{dir = dir, 
+        else
+            {base = joinDirFile{dir = dir,
                                 file = string (trimr 1 fst)},
              ext = SOME (string snd)}
     end;
@@ -267,10 +267,10 @@ end
 (*----------------------------------------------------------------------*)
 (* File system								*)
 (*----------------------------------------------------------------------*)
-structure FileSys :> OS_FILE_SYS = 
-struct 
+structure FileSys :> OS_FILE_SYS =
+struct
 
-local 
+local
   exception Security = System.Security.SecurityException
   exception IO = System.IO.IOException
   exception FileNotFoundException = System.IO.FileNotFoundException
@@ -279,18 +279,18 @@ in
 
 (* We use file enumerators for directory streams. In fact, they're more
    general and allow wildcards etc. *)
-type dirstream = System.Collections.IEnumerator 
+type dirstream = System.Collections.IEnumerator
 
 (* Open a new directory stream; convert exceptions appropriately *)
-fun openDir (s : string) = 
-  let val entries   = 
+fun openDir (s : string) =
+  let val entries   =
       (valOf (System.IO.DirectoryInfo(s).#GetFileSystemInfos()))
       :> System.Array
-  in 
+  in
       valOf (entries.#GetEnumerator())
   end
-  handle Security => syserr acces 
-       | IO => syserr noent 
+  handle Security => syserr acces
+       | IO => syserr noent
        | _ => unknownsyserr "Cannot open directory"
 
 
@@ -303,22 +303,22 @@ fun readDir (f : dirstream) =
 
 
 (* Rewind the directory stream using an enumerator method *)
-fun rewindDir (f : dirstream) = f.#Reset() 
+fun rewindDir (f : dirstream) = f.#Reset()
 
 (* Close the stream: a no-op *)
 fun closeDir (f : dirstream) = ()
 
 (* Change the current directory, converting exceptions appropriately *)
 fun chDir (s:string) =
-  System.Environment.set_CurrentDirectory(s) 
+  System.Environment.set_CurrentDirectory(s)
   handle Security => syserr acces | IO => syserr noent | _ => unknownsyserr "Cannot change directory"
 
 (* Get the name of the current directory *)
-fun getDir () = 
+fun getDir () =
   (*Prim.unsafeValOf*) valOf (System.Environment.get_CurrentDirectory())
 
 (* Create a new directory, converting exceptions appropriately *)
-fun mkDir (s:string) = 
+fun mkDir (s:string) =
   (System.IO.Directory.CreateDirectory(s);())
   handle Security => syserr acces | IO => syserr noent | _ => unknownsyserr "Cannot make directory"
 
@@ -328,12 +328,12 @@ fun rmDir (s:string) =
   handle Security => syserr acces | IO => syserr noent | _ => unknownsyserr "Cannot remove directory"
 
 (* Tests whether s is a directory *)
-fun isDir (s:string) = 
+fun isDir (s:string) =
   System.IO.Directory.Exists(s)
   handle Security => syserr acces | IO => syserr noent | _ => unknownsyserr "Cannot test directory"
 
 (* Tests whether s is a symbolic link; always false in unexceptional cases *)
-fun isLink (s:string) = 
+fun isLink (s:string) =
   if System.IO.File.Exists(s) orelse System.IO.Directory.Exists(s)
       then false
   else syserr noent
@@ -343,12 +343,12 @@ fun readLink (s:string) = syserr acces
 
 (*@TODO: fullPath and realPath take record arguments in the most recent (non-web) basis spec *)
 (* Convert a relative path into an absolute one *)
-fun fullPath (s:string) = 
+fun fullPath (s:string) =
   if System.IO.Directory.Exists(s) orelse System.IO.File.Exists(s)
       then Path.mkCanonical((*Prim.unsafeValOf*) valOf(System.IO.Path.GetFullPath(s)))
   else syserr noent
-  handle Security => syserr acces 
-       | IO => syserr noent 
+  handle Security => syserr acces
+       | IO => syserr noent
        | _ => unknownsyserr "Cannot determine full path"
 
 fun realPath (s:string) =
@@ -358,11 +358,11 @@ fun realPath (s:string) =
 
 val epochFileTime = PrimUtils_.epoch.#ToFileTime()
 
-fun modTime (s:string) = 
+fun modTime (s:string) =
     let
-	val info = if System.IO.File.Exists(s) 
+	val info = if System.IO.File.Exists(s)
 		       then System.IO.FileInfo(s) :> System.IO.FileSystemInfo
-		   else if System.IO.Directory.Exists(s) 
+		   else if System.IO.Directory.Exists(s)
 			    then System.IO.DirectoryInfo(s) :> System.IO.FileSystemInfo
 			else raise IO
 	val _ = info.#Refresh()
@@ -371,19 +371,19 @@ fun modTime (s:string) =
     in
 (* 	Time.fromMicroseconds(LargeInt.div(ticks,10:LargeInt.int)) *)
 (*@BUG: we use resolution of seconds to agree with NJ (and Moscow?) times *)
-	Time.fromSeconds(LargeInt.div(ticks,10000000:LargeInt.int)) 
+	Time.fromSeconds(LargeInt.div(ticks,10000000:LargeInt.int))
     end
-    handle Security => syserr acces 
-	 | FileNotFoundException => syserr noent 
+    handle Security => syserr acces
+	 | FileNotFoundException => syserr noent
 	 | _ => unknownsyserr "Cannot determine file modification time"
 
 
 (*@TODO: review *)
-fun setTime (s:string, topt) = 
+fun setTime (s:string, topt) =
 let
-  val info = if System.IO.File.Exists(s) 
+  val info = if System.IO.File.Exists(s)
 			   then System.IO.FileInfo(s) :> System.IO.FileSystemInfo
-		       else if System.IO.Directory.Exists(s) 
+		       else if System.IO.Directory.Exists(s)
 				then System.IO.DirectoryInfo(s) :> System.IO.FileSystemInfo
 			    else raise IO
   val _ = info.#Refresh()
@@ -392,30 +392,30 @@ in
 (*@BUG: we use resolution of seconds to agree with NJ (and Moscow?) times *)
 (*       | SOME ticks => (info.#set_LastWriteTime(PrimUtils_.epoch.#AddTicks(Prim.mul(Time.toMicroseconds(ticks),10)))) *)
        | SOME ticks => (info.#set_LastWriteTime(PrimUtils_.epoch.#AddTicks(Prim.mul(Time.toSeconds(ticks),10000000))))
-    
+
 end
-handle Security => syserr acces 
-     | IO => syserr noent 
+handle Security => syserr acces
+     | IO => syserr noent
      | _ => unknownsyserr "Cannot set file modification time"
 
 (*@TODO: review *)
 (* directories don't support get_Length *)
 fun fileSize (s:string) =
   let
-      val info = if System.IO.File.Exists(s) then System.IO.FileInfo(s) 
+      val info = if System.IO.File.Exists(s) then System.IO.FileInfo(s)
 		 else raise IO
       val _ = info.#Refresh()
   in
       info.#get_Length()
   end
-  handle Security => syserr acces 
-       | IO => syserr noent 
+  handle Security => syserr acces
+       | IO => syserr noent
        | _ => unknownsyserr "Cannot determine file size"
 
 
 fun remove (s:string) =
   System.IO.File.Delete(s)
-  handle Security => syserr acces 
+  handle Security => syserr acces
        | FileNotFoundException => syserr noent
        | _ => unknownsyserr "Cannot delete file"
 
@@ -427,8 +427,8 @@ fun rename {old, new} =
        | _ => unknownsyserr "Cannot rename file or directory"
 
 
-(*@TODO: tmpName diverges from Basis Spec in actually creating the file *)  
-fun tmpName () = 
+(*@TODO: tmpName diverges from Basis Spec in actually creating the file *)
+fun tmpName () =
     Path.concat(Path.currentArc,Path.file(valOf (System.IO.Path.GetTempFileName())))
     handle Option => unknownsyserr "Cannot create tmp file"
 
@@ -441,30 +441,30 @@ local (*@TODO: Review*)
     (* conversions between CLI access permissions and words and access_mode *)
     structure Permissions = System.Security.Permissions
     fun toWord (Permissions.FileIOPermissionAccess i) = Word.fromInt(i)
-    fun fromWord w = Permissions.FileIOPermissionAccess (Word.toInt w) 
+    fun fromWord w = Permissions.FileIOPermissionAccess (Word.toInt w)
     fun fromMode A_EXEC = 0w0 (*@TODO: what should this mean on the CLI, if anything? *)
       | fromMode A_READ = toWord(Permissions.FileIOPermissionAccess.Read)
       | fromMode A_WRITE  = toWord(Permissions.FileIOPermissionAccess.Write)
 in
-fun access (s:string, modes) =  
+fun access (s:string, modes) =
 let
-  val (exists,isDir) = if System.IO.File.Exists(s) 
-			   then (true,false) 
-		       else if System.IO.Directory.Exists(s) 
+  val (exists,isDir) = if System.IO.File.Exists(s)
+			   then (true,false)
+		       else if System.IO.Directory.Exists(s)
 				then (true,true)
 			    else (false,false)
   fun test [] = true
-  |   test modes = 
+  |   test modes =
       let
-	  val f = if isDir 
+	  val f = if isDir
 		  then System.IO.DirectoryInfo(s):>System.IO.FileSystemInfo
-		  else System.IO.FileInfo(s):>System.IO.FileSystemInfo 
+		  else System.IO.FileInfo(s):>System.IO.FileSystemInfo
     	  val fullname = valOf(f.#get_FullName())
           val access = fromWord(List.foldl (fn (mode,w) => Word.orb(w,fromMode(mode))) 0w0 modes)
           val p = System.Security.Permissions.FileIOPermission(access,fullname)
       in
           (p.#Demand();true handle _ => false)
-      end 
+      end
 in
   exists andalso (test modes)
 end
@@ -474,19 +474,19 @@ end
 type file_id = string (* the canonical full path to the file or directory *)
 
 (*@TODO: review *)
-fun fileId (s:string) = 
+fun fileId (s:string) =
 let
-  val info = if System.IO.File.Exists(s) 
+  val info = if System.IO.File.Exists(s)
 		 then System.IO.FileInfo(s) :> System.IO.FileSystemInfo
-	     else if System.IO.Directory.Exists(s) 
+	     else if System.IO.Directory.Exists(s)
 		      then System.IO.DirectoryInfo(s) :> System.IO.FileSystemInfo
 		  else raise IO
   val _ = info.#Refresh()
 in
   Path.mkCanonical(valOf(info.#get_FullName()))
 end
-handle Security => syserr acces 
-     | IO => syserr noent 
+handle Security => syserr acces
+     | IO => syserr noent
      | _ => unknownsyserr "Cannot determine file id"
 
 
@@ -513,9 +513,9 @@ struct
   val failure = 1
 
   exception WE = System.ComponentModel.Win32Exception
-  fun system (command:string) = 
-	   let 	
-	       val (cmd,args) = let val (sub1,sub2) = Substring.splitl (not o Char.isSpace) (Substring.all command)
+  fun system (command:string) =
+	   let
+	       val (cmd,args) = let val (sub1,sub2) = Substring.splitl (not o Char.isSpace) (Substring.full command)
 				in (Substring.string sub1,Substring.string sub2)
 				end
 	       val p = System.Diagnostics.Process()
@@ -523,15 +523,15 @@ struct
 	       val () = psi.#set_FileName(cmd)
 	       val () = psi.#set_Arguments(args)
 (*@TODO: these two not available in ROTOR *)
-               val () = psi.#set_CreateNoWindow(true) 
-               val () = psi.#set_UseShellExecute(false) 
+               val () = psi.#set_CreateNoWindow(true)
+               val () = psi.#set_UseShellExecute(false)
 (*               val () = psi.#set_RedirectStandardOutput(true) *)
 	       val () = p.#set_StartInfo(psi)
 	   in
 	       p.#Start() handle WE => raise SysErr(String.^("not found: ", cmd), NONE);
 	       p.#WaitForExit();
 	       p.#Refresh();
-               let val status = p.#get_ExitCode() 
+               let val status = p.#get_ExitCode()
 	       in
 		   p.#Dispose(); (* YUK! *)
 		   0 (* status *)
@@ -541,19 +541,19 @@ struct
 
   fun loop () = loop ()
 
-  fun atExit f = 
+  fun atExit f =
     if !inExit then ()
     else exitActions := f :: !exitActions
 
-  fun terminate status = 
+  fun terminate status =
     (System.Environment.Exit(status); loop ())
 
-  fun exit status = 
+  fun exit status =
     if !inExit then raise General.Fail "exit entered"
     else
     (
       inExit := true;
-      List.app (fn f => (f ()) handle _ => ()) (!exitActions); 
+      List.app (fn f => (f ()) handle _ => ()) (!exitActions);
       terminate status
     )
 
