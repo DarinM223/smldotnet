@@ -14,14 +14,15 @@
 (* funid(strdec) => funid(struct strdec end) for functor applications   *)
 (* This is so that the compiler can give better error messages          *)
 (*======================================================================*)
-structure Syntax = 
+structure Syntax =
 struct
+
 
 type Position=FilePosition.pos
 
 type Location=
   {left:Position,
-   right:Position 
+   right:Position
 (* the convention (as for SML/NJ) is that #right is the character 1 after
    the last character. *)
    }
@@ -36,11 +37,11 @@ type symbol=Symbol.symbol
 (* done in the next stage when scopes are resolved.  (We could combine  *)
 (* the two stages but that would be messy.)                             *)
 (*----------------------------------------------------------------------*)
-datatype PreExp = 
+datatype PreExp =
   SCon of SCon.SCon             (* Special constant: int/real/string *)
 | LongVid of OpLongVid          (* Symbol with possible Op, or field or
                                    method reference. *)
-| FlatApp of Exp list           (* List of expressions to be 
+| FlatApp of Exp list           (* List of expressions to be
                                    sorted out taking fixity into account.
                                    UNFIXED. *)
 | App of Exp*Exp		(* Function application.
@@ -76,7 +77,7 @@ datatype PreExp =
 | Synchronized of Exp*Exp       (* (_sychronized exp_1) exp_2 *)
 | Pure of Exp                   (* _pure exp *)
 | ClassWith of Exp * MethBind list (* Anonymous class type *)
-    
+
 (*----------------------------------------------------------------------*)
 (* Declarations (dec, strdec)                                           *)
 (*----------------------------------------------------------------------*)
@@ -84,7 +85,7 @@ and PreDecItem =
   Val of BoundTyVars * (Pat*Exp) list    (* Non-recursive bindings *)
 | ValRec of BoundTyVars * (Pat*Exp) list (* Recursive bindings *)
 | Fun of BoundTyVars * FValBindItem list list
-                                        (* Function bindings.  
+                                        (* Function bindings.
                                            FIXED *)
 | FlatFun of BoundTyVars * FlatFValBindItem list list
                                         (* Function bindings.
@@ -94,7 +95,7 @@ and PreDecItem =
                                            fun (x y z)=3
                                            must be an infix declaration
                                            of y, while
-                                           fun x y z=3 
+                                           fun x y z=3
                                            could be a declaration of x. *)
 | Type of TypBind
 | Datatype of DatBind * TypBind option
@@ -130,7 +131,7 @@ and SigInfo =
 (*----------------------------------------------------------------------*)
 (* Types (ty, tyrow)                                                    *)
 (*----------------------------------------------------------------------*)
-and PreTy = 
+and PreTy =
   TyVar of symbol               (* Type variables *)
 | TyCon of Ty list * longid     (* Type constructor *)
 | TyFun of Ty*Ty                (* Function type *)
@@ -142,19 +143,19 @@ and PreTy =
 (*----------------------------------------------------------------------*)
 (* Patterns (atpat and pat)                                             *)
 (*----------------------------------------------------------------------*)
-and PrePat = 
+and PrePat =
   PatWild                       (* Wildcard *)
 | PatSCon of SCon.SCon          (* Special constant: int/real/string *)
-| PatVar of OpLongVid           (* Variable or nullary constructor. 
+| PatVar of OpLongVid           (* Variable or nullary constructor.
                                    The LongHash and LongHashHash keywords
                                    should not occur here.
                                    *)
 | FlatPat of Pat list           (* List of expressions to be sorted out
                                    taking fixity into account.
-                                   UNFIXED *)      
+                                   UNFIXED *)
 | PatCon of longid*Pat		(* Unary constructor
                                    FIXED *)
-                           
+
 | PatRecord of bool*((symbol*Pat) list) (* true = open, false = closed *)
 | PatLayer of OpVid*Ty option*Pat
                                 (* Layered pattern: id:ty as pat *)
@@ -194,14 +195,14 @@ and PreSpecItem =
 (*----------------------------------------------------------------------*)
 and PreSigExp =
   SigSpec of Spec
-| Sigid of symbol 
+| Sigid of symbol
 | Where of SigExp * symbol list * longid * Ty
 
 (*----------------------------------------------------------------------*)
 (* Structure expressions (strexp)                                       *)
 (*----------------------------------------------------------------------*)
 and PreStrExp =
-  Struct of Dec      
+  Struct of Dec
 | Strid of longid
 | StrTransparent of StrExp * SigExp
 | StrOpaque of StrExp * SigExp
@@ -218,12 +219,12 @@ and FunArg =
 (*----------------------------------------------------------------------*)
 (* Class/Interface declaration                                          *)
 (*----------------------------------------------------------------------*)
-and ClassDec = 
+and ClassDec =
   ClassType of
   {
     tycon : symbol,
-    attributes : AttExp list, 
-    conattributes : AttExp list, 
+    attributes : AttExp list,
+    conattributes : AttExp list,
     modifiers : symbol list,
     pat : Pat,
     inherits : Inherits list,
@@ -233,15 +234,15 @@ and ClassDec =
 | DelegateType of
   {
     tycon : symbol,
-    attributes : AttExp list, 
-    conattributes : AttExp list, 
+    attributes : AttExp list,
+    conattributes : AttExp list,
     modifiers : symbol list,
     ty : Ty
   }
 (*
 | EnumType of
   {
-    attributes : AttExp list, 
+    attributes : AttExp list,
     tycon : symbol,
     ty : Ty,
     literals : symbol * SCon list
@@ -254,7 +255,7 @@ and Inherits =
 and ClassDesc =
   ClassTypeSpec of
   {
-    tycon : symbol,  
+    tycon : symbol,
     conty : Ty option,
     modifiers : symbol list,
     inherits : Ty list,
@@ -273,14 +274,14 @@ and OpLongVid =
 (*   whose argument expressions are constants of restricted types       *)
 (*----------------------------------------------------------------------*)
 and NamedArg = Property of symbol | Field of symbol
-and PreAttExp = AttApp of Exp * (NamedArg * AttArg) list 
+and PreAttExp = AttApp of Exp * (NamedArg * AttArg) list
       (* Attribute Construtor application WITH optional
-         list of named field/property initializers  
+         list of named field/property initializers
 	 bool is true if symbol refers to a property, false if it refers to a field.
        *)
 (* Type variables bound at val or fun *)
 withtype BoundTyVars = { explicit : symbol list, implicit : symbol list }
-and Exp = Location * PreExp 
+and Exp = Location * PreExp
 and SigExp = Location * PreSigExp
 and StrExp = Location * PreStrExp
 and Ty = Location * PreTy
@@ -292,11 +293,11 @@ and OpVid = bool * symbol
 and Match = ((Location * PrePat) * (Location * PreExp)) list
 and Dec = (Location * PreDecItem) list
 and Spec = (Location * PreSpecItem) list
-and FlatFValBindItem = 
-  Location * (Location * PrePat) list * 
+and FlatFValBindItem =
+  Location * (Location * PrePat) list *
   (Location * PreExp) * (Location * PreTy) option
-and FValBindItem = 
-  Location * symbol * (Location * PrePat) list * 
+and FValBindItem =
+  Location * symbol * (Location * PrePat) list *
   (Location * PreExp) * (Location * PreTy) option
 and MethBindItem =
   Location * symbol * ((Location * PrePat) * (Location * PreExp)) option
@@ -308,14 +309,14 @@ and MethBind = ((Location * PreAttExp) list) * symbol list *
   * (Location * PreTy) option) list
 and ConBind = (bool * symbol) * (Location * PreTy) option
 and TypBind = (symbol list * symbol * (Location * PreTy)) list
-and DatBind = (symbol list * symbol * 
+and DatBind = (symbol list * symbol *
 ((bool * symbol) * (Location * PreTy) option) list) list
 and StrBind = symbol * (Location * PreStrExp) * SigInfo
 and SigBind = symbol * (Location * PreSigExp)
 and FunBind = symbol * FunArg * SigInfo * (Location * PreStrExp)
 and MRule = (Location * PrePat) * (Location * PreExp)
 and AttExp = Location * PreAttExp
-and AttArg = Location * PreExp 
+and AttArg = Location * PreExp
 (*
 and MRule = Pat * Exp
 and Match = MRule list
@@ -325,7 +326,7 @@ and ConBind = OpVid * Ty option
 and Dec = DecItem list
 and Spec = SpecItem list
 and TypBind = (symbol list * symbol * Ty) list
-and DatBind = (symbol list * symbol * (ConBind list)) list 
+and DatBind = (symbol list * symbol * (ConBind list)) list
 and StrBind = symbol * StrExp * SigInfo
 and SigBind = symbol * SigExp
 and FunBind = symbol*FunArg*SigInfo*StrExp

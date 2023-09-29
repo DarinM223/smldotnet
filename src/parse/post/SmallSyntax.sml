@@ -7,6 +7,7 @@
 structure SmallSyntax =
 struct
 
+
 (*----------------------------------------------------------------------*)
 (* Structure expressions						*)
 (*    struct <dec> end                                                  *)
@@ -65,8 +66,8 @@ and Mention = Longid.Set.set (* without final identifiers *)
 (*----------------------------------------------------------------------*)
 fun decItemToString di =
 case di of
-  Local(d1,d2) => 
-  "(local " ^ decToString d1 ^ " in " ^ decToString d2 ^ " end)" 
+  Local(d1,d2) =>
+  "(local " ^ decToString d1 ^ " in " ^ decToString d2 ^ " end)"
 
 | Open longids =>
   "open " ^ Pretty.simpleVec " " Longid.toString longids
@@ -82,7 +83,7 @@ case di of
 
 | Signature b =>
   "signature"
- 
+
 | Functor f =>
   "functor"
 
@@ -93,15 +94,15 @@ case strexp of
   Struct d => "struct " ^ decToString d
 | Strid strid => Longid.toString strid
 | StrConstraint (strexp, sigexp) => strExpToString strexp ^ ":"
-| FunApp(funid, strexp) => 
+| FunApp(funid, strexp) =>
   Id.toString funid ^ "(" ^ strExpToString strexp ^ ")"
 | StrLet(d,strexp) =>
   "let " ^ decToString d ^ " in " ^ strExpToString strexp ^ " end"
 
 structure Pickle =
 struct
-local 
-  open Pickle 
+local
+  open Pickle
 in
   val mention = wrap (fn x => Longid.Set.addList(Longid.Set.empty,x),
                       Longid.Set.listItems) (list IdPickle.longid)
@@ -127,10 +128,10 @@ in
      wrap (Open, fn Open x => x) (list IdPickle.longid),
      wrap (Structure, fn Structure x => x) (list (pair (IdPickle.id, strexp))),
      wrap (Signature, fn Signature x => x) (list (pair (IdPickle.id, sigexp))),
-     wrap (Functor, fn Functor x => x) 
+     wrap (Functor, fn Functor x => x)
        (list (triple (IdPickle.id, list specitem, strexp))),
      wrap (Mention, fn Mention x => x) mention
-   ],     
+   ],
    alttag (fn Struct _ => 0 | Strid _ => 1 | StrConstraint _ => 2 | FunApp _ => 3 | StrLet _ => 4)
    [
      wrap (Struct, fn Struct x => x) (list decitem),

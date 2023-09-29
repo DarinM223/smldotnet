@@ -12,17 +12,18 @@
 (*     form ('a_1,...,'a_n) T.                                          *)
 (*                                                                      *)
 (* Also make sure that the entity type matches the declaration type and *)
-(* that the entity name matches the identitier name.			*)  
+(* that the entity name matches the identitier name.			*)
 (*======================================================================*)
 structure SyntaxCheck :> SYNTAXCHECK =
 struct
 
 
+
 open Syntax SyntaxCheckOps
 
-fun spanLoc (({left=l1,right=r1},_),({left=l2,right=r2},_)) = 
+fun spanLoc (({left=l1,right=r1},_),({left=l2,right=r2},_)) =
     let val left = Int.min(l1,l2)
-        val right = Int.max(r1,r2) 
+        val right = Int.max(r1,r2)
     in
         {left=left,right=right}
     end
@@ -65,20 +66,20 @@ local
   case prespecitem of
 
   (* Just value identifiers *)
-  ValDesc valdesc => 
+  ValDesc valdesc =>
   bs (rest, map (fn (a,_) => (a,loc)) valdesc @ ids, tycons)
 
   (* Just type identifiers *)
-| (TypeDesc typdesc) => 
+| (TypeDesc typdesc) =>
   bs (rest, ids, map (fn (_,a,_) => (a,loc)) typdesc @ tycons)
 
-| (EqTypeDesc typdesc) => 
+| (EqTypeDesc typdesc) =>
   bs (rest, ids, map (fn (_,a) => (a,loc)) typdesc @ tycons)
 
   (* Both type (datatype+withtype) and value (constructor) identifiers *)
-| DatatypeDesc (datdesc, typbindopt) => 
+| DatatypeDesc (datdesc, typbindopt) =>
   bs (rest,
-  map (fn ((_,a),_) => (a,loc)) (List.concat (map #3 datdesc)) @ ids, 
+  map (fn ((_,a),_) => (a,loc)) (List.concat (map #3 datdesc)) @ ids,
 
    map (fn (_,a,_) => (a,loc)) datdesc @
    (case typbindopt of NONE => []
@@ -90,7 +91,7 @@ local
   bs (rest, ids, (id,loc)::tycons)
 
   (* Just value identifiers *)
-| ExceptionDesc exdesc => 
+| ExceptionDesc exdesc =>
   bs (rest, map (fn ((_,a),_) => (a,loc)) exdesc @ ids, tycons)
 
 (*
@@ -99,12 +100,12 @@ local
   bs (rest, ids, (tycon,loc) :: tycons)
 *)
 
-| _ => 
+| _ =>
   bs (rest, ids, tycons)
 
 in
   fun specIds spec = bs (spec, [], [])
-end 
+end
 
 (*----------------------------------------------------------------------*)
 (* Check type expressions and collect free type variables, accumulating *)
@@ -118,22 +119,22 @@ case prety of
 | TyCon(tys, longid) =>
   checkTys level tys acc
 
-| TyFun(ty1, ty2) => 
+| TyFun(ty1, ty2) =>
   checkTy level ty1 (checkTy level ty2 acc)
 
 (*......................................................................*)
 (* Section 2.9: no type row may bind the same label twice	        *)
 (*......................................................................*)
-| TyRecord tyrow => 
-  let 
+| TyRecord tyrow =>
+  let
     val (labels, tys) = ListPair.unzip tyrow
-    val errors = 
+    val errors =
       checkDupAtoms (loc, labels, "duplicate labels in record type") errors
   in
     checkTys level tys (errors, tyvars)
   end
 
-| TyTuple tys => 
+| TyTuple tys =>
   checkTys level tys acc
 
 (*----------------------------------------------------------------------*)
@@ -151,10 +152,10 @@ fun checkTyOpt level NONE p = p
 (*----------------------------------------------------------------------*)
 (* Section 2.9: no tyvarseq may contain the same tyvar twice.      	*)
 (*----------------------------------------------------------------------*)
-fun checkTyVars (loc, tyvarseq) errors = 
+fun checkTyVars (loc, tyvarseq) errors =
   checkDupAtoms (loc, tyvarseq, "duplicate type variable names") errors
 
-fun getTyCons ids (loc,prety) = 
+fun getTyCons ids (loc,prety) =
 case prety of
   TyVar _ => []
 | TyCon (args, [id]) =>
@@ -193,7 +194,7 @@ case prety of
 
 and substTyVar S (ty as (loc,prety)) =
 case prety of
-  TyVar id => 
+  TyVar id =>
   let
     fun find [] = ty
       | find ((id',ty)::S) = if Symbol.equal(id,id') then ty else find S
@@ -209,9 +210,9 @@ case prety of
 (* Check pattern expression and collect free type variables.   		*)
 (* The variable ie is bound to the current infix environment.           *)
 (*----------------------------------------------------------------------*)
-fun checkPat 
+fun checkPat
   (env as (level,ie))
-  (pat as (loc, prepat) : Syntax.Pat) 
+  (pat as (loc, prepat) : Syntax.Pat)
   (acc as (errors, tyvars)) =
 
 case prepat of
@@ -227,30 +228,30 @@ case prepat of
 (* Section 2.9: no pattern row may bind the same lab twice.             *)
 (*......................................................................*)
 | PatRecord (flex, patrow) =>
-  let 
+  let
     val (labels, pats) = ListPair.unzip patrow
-    val errors = 
+    val errors =
       checkDupAtoms (loc, labels, "duplicate labels in record pattern") errors
     val (pats, acc) = checkPats env pats (errors, tyvars)
   in
     ((loc,PatRecord (flex, ListPair.zip(labels, pats))), acc)
   end
 
-| PatConstraint(pat, ty) => 
+| PatConstraint(pat, ty) =>
   let
     val (pat, acc) = checkPat env pat (checkTy level ty acc)
   in
     ((loc,PatConstraint(pat, ty)), acc)
   end
 
-| PatCast(id, ty) => 
+| PatCast(id, ty) =>
   let
     val acc = checkTy level ty acc
   in
     ((loc,PatCast(id, ty)), acc)
   end
 
-| PatLayer(id, tyopt, pat) => 
+| PatLayer(id, tyopt, pat) =>
   let
     val (pat, acc) = checkPat env pat (checkTyOpt level tyopt acc)
   in
@@ -264,14 +265,14 @@ case prepat of
     ((loc,PatTuple pats), acc)
   end
 
-| PatList pats => 
+| PatList pats =>
   let
     val (pats, acc) = checkPats env pats acc
   in
     ((loc,PatList pats), acc)
   end
 
-| OrPat pats => 
+| OrPat pats =>
   let
     val (pats, acc) = checkPats env pats acc
     val acc = ((Error.warning(loc, "non-portable OR pattern "))::(#1 acc),#2 acc)
@@ -299,7 +300,7 @@ case prepat of
   let
     val (pats, acc as (errors,tyvars)) = checkPats env pats acc
   in
-    (resolvePat (ie, pats), acc) handle 
+    (resolvePat (ie, pats), acc) handle
      ResolvePrec.InfixError s =>
     (pat, (Error.error(loc, s)::errors, tyvars))
   end
@@ -320,14 +321,14 @@ and checkPats env [] acc = ([], acc)
 (* Syntactic restrictions on type/datatype declarations.         	*)
 (*----------------------------------------------------------------------*)
 fun checkTypBind level (loc, datbindopt, typbindopt) (acc as (errors, tyvars))=
-let 
+let
   val tycons1 =
-    case datbindopt of 
-      NONE => [] 
+    case datbindopt of
+      NONE => []
     | SOME datbind => map (fn (x,y,z) => (x,y)) datbind
 
-  val tycons2 = 
-    case typbindopt of 
+  val tycons2 =
+    case typbindopt of
       NONE => []
     | SOME typbind => map (fn (x,y,z) => (x,y)) typbind
 
@@ -337,16 +338,16 @@ let
   val errors =
     case datbindopt of
       NONE => errors
-    | SOME datbind => 
+    | SOME datbind =>
       let
         val S = getOpt(typbindopt, [])
         val ids = map #2 tycons1
       in
         List.concat (map (fn (tyvarseq, tycon, conbinds) =>
-        let 
-          val argss = 
-            List.concat 
-              (map (fn (_,NONE) => [] | (_,SOME ty) => 
+        let
+          val argss =
+            List.concat
+              (map (fn (_,NONE) => [] | (_,SOME ty) =>
                 getTyCons ids (substTyCon S ty)) conbinds)
           fun checkArgs (loc,args) =
           let
@@ -357,17 +358,17 @@ let
           in
             if check (tyvarseq, args)
             then NONE
-            else SOME (Error.error(loc, 
+            else SOME (Error.error(loc,
               "datatype is used non-uniformly: "
               ^ Pretty.simpleVec "," Id.toString tyvarseq ^ " against "
               ^ Int.toString (length args)))
-          end              
+          end
         in
           List.mapPartial checkArgs argss
         end) datbind) @ errors
       end
 *)
-      
+
   (*..................................................................*)
   (* No typbind/datbind may bind the same type identifier twice.      *)
   (*..................................................................*)
@@ -376,23 +377,23 @@ let
   (*..................................................................*)
   (* Type variables must be distinct				      *)
   (*..................................................................*)
-  val errors = foldl (fn (tyvarseq,errors) => 
+  val errors = foldl (fn (tyvarseq,errors) =>
     checkTyVars (loc, tyvarseq) errors) errors tyvarseqs
 
-  val (cons, tyopts) = 
-    case datbindopt of 
+  val (cons, tyopts) =
+    case datbindopt of
       NONE => ([], [])
     | SOME datbind => ListPair.unzip(List.concat (map #3 datbind))
 
   (*..................................................................*)
   (* No datbind may bind the same value identifier twice.	      *)
   (*..................................................................*)
-  val errors = checkDupAtoms (loc, map (fn (_,a) => a) cons, 
+  val errors = checkDupAtoms (loc, map (fn (_,a) => a) cons,
     "duplicate constructor names in datatype declaration") errors
 
-  val tyopts = 
-    case typbindopt of 
-      NONE => tyopts 
+  val tyopts =
+    case typbindopt of
+      NONE => tyopts
     | SOME typbind => map (SOME o #3) typbind @ tyopts
 
 in
@@ -402,9 +403,9 @@ end
 (*----------------------------------------------------------------------*)
 (* Syntactic restrictions on expressions.                   		*)
 (*----------------------------------------------------------------------*)
-fun checkExp 
-  (env as (level,ie)) 
-  (exp as (loc, preexp) : Exp) 
+fun checkExp
+  (env as (level,ie))
+  (exp as (loc, preexp) : Exp)
   (acc as (errors, tyvars)) =
 
 case preexp of
@@ -421,12 +422,12 @@ case preexp of
   let
     val (exps,acc as (errors, tyvars)) = checkExps env exps acc
   in
-     (resolveExp (ie,exps), acc) 
-     handle ResolvePrec.InfixError s => 
+     (resolveExp (ie,exps), acc)
+     handle ResolvePrec.InfixError s =>
      (exp, (Error.error(loc, s)::errors, tyvars))
   end
 
-| Fn match => 
+| Fn match =>
   let
     val (match, acc) = checkMatch env match acc
   in
@@ -450,7 +451,7 @@ case preexp of
     ((loc, LetUnless(dec, exp, match)), acc)
   end
 
-| Constraint(exp, ty) => 
+| Constraint(exp, ty) =>
   let
     val (exp, acc) = checkExp env exp acc
     val acc = checkTy level ty acc
@@ -458,7 +459,7 @@ case preexp of
     ((loc, Constraint(exp, ty)), acc)
   end
 
-| ConstraintGt(exp, ty) => 
+| ConstraintGt(exp, ty) =>
   let
     val (exp, acc) = checkExp env exp acc
     val acc = checkTy level ty acc
@@ -466,7 +467,7 @@ case preexp of
     ((loc, ConstraintGt(exp, ty)), acc)
   end
 
-| Handle(exp, match) => 
+| Handle(exp, match) =>
   let
     val (exp, acc) = checkExp env exp acc
     val (match, acc) = checkMatch env match acc
@@ -474,14 +475,14 @@ case preexp of
     ((loc, Handle(exp, match)), acc)
   end
 
-| Raise exp => 
+| Raise exp =>
   let
     val (exp, acc) = checkExp env exp acc
   in
     ((loc, Raise exp), acc)
   end
 
-| Pure exp => 
+| Pure exp =>
   let
     val (exp, acc) = checkExp env exp acc
   in
@@ -507,10 +508,10 @@ case preexp of
 (*......................................................................*)
 (* Section 2.9: no expression row may bind the same lab twice.		*)
 (*......................................................................*)
-| Record exprow => 
-  let 
+| Record exprow =>
+  let
     val (labels, exps) = ListPair.unzip exprow
-    val errors = 
+    val errors =
       checkDupAtoms (loc, labels, "duplicate labels in record") errors
     val (exps, acc) = checkExps env exps (errors, tyvars)
   in
@@ -600,10 +601,10 @@ and checkExps env [] acc = ([], acc)
 (*----------------------------------------------------------------------*)
 (* Check a match							*)
 (*----------------------------------------------------------------------*)
-and checkMatch env [] acc = 
+and checkMatch env [] acc =
     ([], acc)
 
-  | checkMatch env ((pat,exp)::match) acc = 
+  | checkMatch env ((pat,exp)::match) acc =
     let
       val (pat,acc) = checkPat env pat acc
       val (exp, acc) = checkExp env exp acc
@@ -612,13 +613,13 @@ and checkMatch env [] acc =
       ((pat,exp)::match, acc)
     end
 
-and makeBound level ({ explicit, implicit }, freetyvars) = 
-  { explicit = explicit, 
-    implicit = 
-      List.filter 
-      (fn tyvar => not (List.exists 
+and makeBound level ({ explicit, implicit }, freetyvars) =
+  { explicit = explicit,
+    implicit =
+      List.filter
+      (fn tyvar => not (List.exists
         (fn tyvar' => Symbol.equal(tyvar,tyvar')) explicit))
-      (map #1 (Symbol.Map.listItemsi 
+      (map #1 (Symbol.Map.listItemsi
         (Symbol.Map.filter (fn level' => level' = level+1) freetyvars)))
   }
 
@@ -627,9 +628,9 @@ and makeBound level ({ explicit, implicit }, freetyvars) =
 (* Return a transformed decitem, accumulated type variables/errors list *)
 (* and a new infix environment.                                         *)
 (*----------------------------------------------------------------------*)
-and checkDecItem 
-  (env as (level,ie)) 
-  (decitem as (loc, predecitem) : Syntax.DecItem) 
+and checkDecItem
+  (env as (level,ie))
+  (decitem as (loc, predecitem) : Syntax.DecItem)
   (acc as (errors, tyvars)) =
 
 case predecitem of
@@ -639,7 +640,7 @@ case predecitem of
   in
     ((loc, Val(makeBound level (boundtyvars, freetyvars), match)), acc, ie)
   end
-          
+
 | ValRec(boundtyvars, match) =>
   let
     val (match, acc as (errors,freetyvars)) = checkMatch (level+1,ie) match acc
@@ -649,7 +650,7 @@ case predecitem of
 
 | FlatFun(boundtyvars, fvalbinds) =>
   let
-    val (fvalbinds, acc as (errors,freetyvars)) = 
+    val (fvalbinds, acc as (errors,freetyvars)) =
       checkFValBind (level+1,ie) fvalbinds acc
   in
     ((loc, Fun(makeBound level (boundtyvars, freetyvars), fvalbinds)), acc, ie)
@@ -666,7 +667,7 @@ case predecitem of
 
 | DatatypeCopy _ =>
   (decitem, acc, ie)
-  
+
 | Abstype (datbind, typbindopt, dec) =>
   let
     val acc = checkTypBind level (loc, SOME datbind, typbindopt) acc
@@ -677,7 +678,7 @@ case predecitem of
 
 | Exception exbind =>
   let
-    val errors = checkDupAtoms (loc, map (#2 o #1) exbind, 
+    val errors = checkDupAtoms (loc, map (#2 o #1) exbind,
       "duplicate exception declaration") errors
     val acc = checkExBind level exbind (errors,tyvars)
   in
@@ -704,13 +705,13 @@ case predecitem of
 
 | Structure strbinds =>
   let
-    val errors = 
-      checkDupAtoms (loc, map #1 strbinds, 
+    val errors =
+      checkDupAtoms (loc, map #1 strbinds,
         "duplicate structure identifiers") errors
 
-    val (strbinds, acc) = 
+    val (strbinds, acc) =
       foldr (fn (strbind, (strbinds,acc)) =>
-      let 
+      let
         val (strbind,acc) = checkStrBind env strbind acc
       in
         (strbind::strbinds, acc)
@@ -721,13 +722,13 @@ case predecitem of
 
 | Signature sigbinds =>
   let
-    val errors = 
-      checkDupAtoms (loc, map #1 sigbinds, 
+    val errors =
+      checkDupAtoms (loc, map #1 sigbinds,
         "duplicate signature identifiers") errors
 
-    val (sigbinds, acc) = 
+    val (sigbinds, acc) =
       foldr (fn (sigbind, (sigbinds,acc)) =>
-      let 
+      let
         val (sigbind,acc) = checkSigBind env sigbind acc
       in
         (sigbind::sigbinds, acc)
@@ -739,12 +740,12 @@ case predecitem of
 | Functor funbinds =>
   let
     val errors =
-      checkDupAtoms (loc, map #1 funbinds, 
+      checkDupAtoms (loc, map #1 funbinds,
         "duplicate functor identifiers") errors
-  
-    val (funbinds, acc) = 
+
+    val (funbinds, acc) =
       foldr (fn (funbind, (funbinds,acc)) =>
-      let 
+      let
         val (funbind,acc) = checkFunBind env funbind acc
       in
         (funbind::funbinds, acc)
@@ -752,7 +753,7 @@ case predecitem of
   in
     ((loc, Functor funbinds), acc, ie)
   end
-      
+
 | Infix (prec, symbols) =>
   (decitem, acc, Fixity.updateEnv(ie, symbols, Fixity.Infix(prec,false)))
 
@@ -763,7 +764,7 @@ case predecitem of
   (decitem, acc, Fixity.updateEnv(ie, symbols, Fixity.Nonfix))
 
 and checkDec (env as (level,ie)) [] acc = ([], acc, ie)
-  | checkDec (env as (level,ie)) (decitem::dec) acc = 
+  | checkDec (env as (level,ie)) (decitem::dec) acc =
     let
       val (decitem,acc,ie1) = checkDecItem env decitem acc
       val (dec,acc,ie2) = checkDec (level, ie1) dec acc
@@ -811,52 +812,52 @@ in
   ((sigid, sigexp), acc)
 end
 
-and checkSigInfo env SigNone acc = 
+and checkSigInfo env SigNone acc =
     (SigNone, acc)
 
-  | checkSigInfo env (SigConcrete sigexp) acc = 
-    let 
+  | checkSigInfo env (SigConcrete sigexp) acc =
+    let
       val (sigexp, acc) = checkSigExp env sigexp acc
-    in 
-      (SigConcrete sigexp, acc) 
+    in
+      (SigConcrete sigexp, acc)
     end
 
-  | checkSigInfo env (SigAbstract sigexp) acc = 
-    let 
-      val (sigexp, acc) = checkSigExp env sigexp acc     
-    in 
-      (SigAbstract sigexp, acc) 
+  | checkSigInfo env (SigAbstract sigexp) acc =
+    let
+      val (sigexp, acc) = checkSigExp env sigexp acc
+    in
+      (SigAbstract sigexp, acc)
     end
 
 (*----------------------------------------------------------------------*)
 (* Check a class declaration						*)
 (*----------------------------------------------------------------------*)
-and checkClassDec insig (env as (level,ie)) (loc,classdec) 
+and checkClassDec insig (env as (level,ie)) (loc,classdec)
   (acc as (errors, tyvars)) =
 case classdec of
   (*..................................................................*)
   (* Check that the class modifiers are distinct (8.1,JLS) and do     *)
-  (* not contain both _abstract and _final (8.1.2.2, JLS).            *) 
+  (* not contain both _abstract and _final (8.1.2.2, JLS).            *)
   (*..................................................................*)
   ClassType {attributes,modifiers,conattributes,tycon, pat, inherits, localdec, methoddec} =>
   let
-    val errors = 
+    val errors =
       checkDupAtoms (loc, modifiers, "duplicate class modifiers") errors
- 
-    fun checkInherits (Implements ty) acc = 
-        let 
+
+    fun checkInherits (Implements ty) acc =
+        let
           val acc = checkTy level ty acc
         in
           (Implements ty, acc)
         end
 
       | checkInherits (Extends (ty,exp)) acc =
-        let 
+        let
           val acc = checkTy level ty acc
           val (exp, acc) = checkExp env exp acc
         in
           (Extends (ty,exp), acc)
-        end           
+        end
 
     fun checkInheritss [] acc = ([], acc)
       | checkInheritss (x::xs) acc =
@@ -865,10 +866,10 @@ case classdec of
           val (xs',acc) = checkInheritss xs acc
         in
           (x'::xs',acc)
-        end      
+        end
 
 (*
-    val errors = 
+    val errors =
       if List.exists (fn m => m=Syntax.ABSTRACT) modifiers
         andalso List.exists (fn m => m=Syntax.FINAL) modifiers
       then Error.error(loc,"class is both abstract and final")::errors
@@ -881,10 +882,10 @@ case classdec of
     val (pat, acc) = checkPat env pat acc
     val (inherits, acc) = checkInheritss inherits acc
     val (localdec, acc, ie) = checkDec env localdec acc
-    val (methoddec, acc as (errors,freetyvars)) = 
+    val (methoddec, acc as (errors,freetyvars)) =
       checkMethBind (level+1,ie) methoddec acc
   in
-    (ClassType {attributes = attributes, modifiers = modifiers, 
+    (ClassType {attributes = attributes, modifiers = modifiers,
  		conattributes = conattributes, tycon = tycon, inherits = inherits,
 		pat = pat, localdec = localdec, methoddec = methoddec }, acc)
   end
@@ -898,26 +899,26 @@ case classdec of
     val (conattributes, errors) = checkAttributes env conattributes errors
     val acc = checkTy level ty (errors,tyvars)
   in
-    (DelegateType {attributes = attributes, modifiers = modifiers, 
+    (DelegateType {attributes = attributes, modifiers = modifiers,
 		   conattributes = conattributes, tycon = tycon,
 		   ty=ty}, acc)
   end
 
-and checkClassDesc insig (env as (level,ie)) (loc,classdesc) 
+and checkClassDesc insig (env as (level,ie)) (loc,classdesc)
   (acc as (errors, tyvars)) =
 
 case classdesc of
   (*..................................................................*)
   (* Check that the class modifiers are distinct (8.1,JLS) and do     *)
-  (* not contain both _abstract and _final (8.1.2.2, JLS).            *) 
+  (* not contain both _abstract and _final (8.1.2.2, JLS).            *)
   (*..................................................................*)
   ClassTypeSpec {modifiers, tycon, conty, inherits, methodspec} =>
   let
-    val errors = 
+    val errors =
       checkDupAtoms (loc, modifiers, "duplicate class modifiers") errors
- 
+
 (*
-    val errors = 
+    val errors =
       if List.exists (fn m => m=Syntax.ABSTRACT) modifiers
         andalso List.exists (fn m => m=Syntax.FINAL) modifiers
       then Error.error(loc,"class is both abstract and final")::errors
@@ -939,37 +940,37 @@ case classdesc of
 (*----------------------------------------------------------------------*)
 and checkFValBind (env as (level,ie)) [] acc = ([], acc)
   | checkFValBind (env as (level,ie)) fvalbind acc =
-let 
+let
   fun checkOneFValBind binds acc =
   let
     fun check (fvar,len) [] acc = ([], acc)
 
-      | check (fvar,len) ((loc, pats, exp, tyopt)::rest) acc =         
-        let 
+      | check (fvar,len) ((loc, pats, exp, tyopt)::rest) acc =
+        let
           val (exp, acc) = checkExp env exp acc
           val acc = checkTyOpt level tyopt acc
           fun default () =
             case pats of
 
-              (* Expected: 
+              (* Expected:
 		   f pat1 ... patn
                    op f pat1 ... patn *)
 (* SL: or *)
 (*
-              (_,PatVar(Short f | OpShort f))::pats => 
+              (_,PatVar(Short f | OpShort f))::pats =>
               let
                 val (pats, acc) = checkPats env pats acc
               in
                 (SOME f, pats, acc)
               end
 *)
-              ((_,PatVar(Short f))::pats) => 
+              ((_,PatVar(Short f))::pats) =>
               let
                 val (pats, acc) = checkPats env pats acc
               in
                 (SOME f, pats, acc)
               end
-	    | ((_,PatVar(OpShort f))::pats) => 
+	    | ((_,PatVar(OpShort f))::pats) =>
               let
                 val (pats, acc) = checkPats env pats acc
               in
@@ -980,7 +981,7 @@ let
             | (loc,_)::pats =>
               let
                 val (pats, (errors,tyvars)) = checkPats env pats acc
-                val errors = 
+                val errors =
                   Error.error(loc, "expected function identifier")::errors
               in
                 (NONE, pats, (errors,tyvars))
@@ -992,7 +993,7 @@ let
               (* Check for infix operator of form x ++ y ... *)
 (* SL: or *)
 (*
-              (pat1::(loc,PatVar(Short f))::pat2::pats 
+              (pat1::(loc,PatVar(Short f))::pat2::pats
               | (_,PatParen (_,FlatPat [pat1, (loc,PatVar(Short f)), pat2]))
                 :: pats) =>
               (case Fixity.lookup(ie, f) of
@@ -1015,7 +1016,7 @@ let
                 in
                   (SOME f, (loc,PatTuple [pat1,pat2])::pats, acc)
                 end
-              | _ => 
+              | _ =>
                 default ())
             | ((_,PatParen (_,FlatPat [pat1, (loc,PatVar(Short f)), pat2]))
                 :: pats) =>
@@ -1028,7 +1029,7 @@ let
                 in
                   (SOME f, (loc,PatTuple [pat1,pat2])::pats, acc)
                 end
-              | _ => 
+              | _ =>
                 default ())
 
             | (_,FlatPat pats)::pats' =>
@@ -1038,18 +1039,18 @@ let
                 val pat = resolvePat (ie, pats)
               in
                 case pat of
-                  (_,PatCon([f],pat)) => 
+                  (_,PatCon([f],pat)) =>
                   (SOME f, pat::pats', acc)
-              end        
+              end
 
-            | _ => 
+            | _ =>
               default ()
 
-          val (rest, acc as (errors,tyvars)) = 
-            check (fvar',length pats) rest acc        
+          val (rest, acc as (errors,tyvars)) =
+            check (fvar',length pats) rest acc
 
-          val errors = 
-            if null pats 
+          val errors =
+            if null pats
             then Error.error(loc, "missing arguments in function declaration")
               ::errors
             else errors
@@ -1059,18 +1060,18 @@ let
           | SOME fvar' =>
             let
               val errors =
-              case fvar of 
+              case fvar of
                 NONE => errors
-              | SOME fvar => 
+              | SOME fvar =>
                 if not(Symbol.equal(fvar,fvar'))
-                then Error.error(loc,"clauses don't all have function name " ^ 
+                then Error.error(loc,"clauses don't all have function name " ^
                   Id.toString fvar)::errors
-                else if len = length pats 
+                else if len = length pats
                 then errors
-                else Error.error(loc, 
+                else Error.error(loc,
                   "clauses don't all have same number of patterns")::errors
             in
-              ((loc, fvar', pats, exp, tyopt)::rest, 
+              ((loc, fvar', pats, exp, tyopt)::rest,
               (errors, tyvars))
             end
         end
@@ -1093,7 +1094,7 @@ let
     case validfvalbind of
       [] => errors
     | x::xs =>
-      checkDupAtoms (#1 (hd x), map (#2 o hd) validfvalbind, 
+      checkDupAtoms (#1 (hd x), map (#2 o hd) validfvalbind,
         "duplicate function names in fun declaration") errors
 in
   (fvalbind, (errors,tyvars))
@@ -1104,13 +1105,13 @@ end
 (*----------------------------------------------------------------------*)
 and checkMethBind (env as (level,ie)) [] acc = ([], acc)
   | checkMethBind (env as (level,ie)) (methbind : Syntax.MethBind list) acc =
-let 
+let
   fun checkOneMethBind binds acc =
   let
     val acc  =
 	(* check binds contain exactly one abstract clause or n>=1 concrete clauses *)
-	case binds of 
-	           [] => Debug.fail "SyntaxCheck: found zero-length method bindings" 
+	case binds of
+	           [] => Debug.fail "SyntaxCheck: found zero-length method bindings"
 	         | [(loc,fvar,NONE,SOME _)] => acc
 		 | _ =>
 		    case List.find (fn(loc,fvar,_,SOME _) => true | _ => false) binds of
@@ -1118,19 +1119,19 @@ let
  		    | SOME(loc,_,_,_) =>
 			    (Error.error(loc,"concrete method clauses contain an illegal abstract clause") :: #1 acc,
 			     #2 acc)
-		    
+
     fun check fvar [] acc = ([], acc)
-      | check fvar ((loc, fvar', bodyopt, tyopt)::rest) acc =         
-        let 
-	  val acc =  case fvar of 
+      | check fvar ((loc, fvar', bodyopt, tyopt)::rest) acc =
+        let
+	  val acc =  case fvar of
 	                  NONE => acc
 	                | SOME fvar =>
 			   if not(Symbol.equal(fvar,fvar'))
-			      then (Error.error(loc,"clauses don't all have same method name " ^ 
+			      then (Error.error(loc,"clauses don't all have same method name " ^
 						Id.toString fvar):: #1 acc,
 				    #2 acc)
 			   else acc
-          val (bodyopt, acc) = 
+          val (bodyopt, acc) =
           case bodyopt of
             NONE => (NONE, acc)
           | SOME (pat,exp) =>
@@ -1139,10 +1140,10 @@ let
             in (SOME (pat,exp), acc) end
 
           val acc = checkTyOpt level tyopt acc
-          val (rest, acc as (errors,tyvars)) = check (SOME fvar') rest acc    
+          val (rest, acc as (errors,tyvars)) = check (SOME fvar') rest acc
 
         in
-          ((loc,fvar',bodyopt,tyopt)::rest, acc) 
+          ((loc,fvar',bodyopt,tyopt)::rest, acc)
         end
   in
     check NONE binds acc
@@ -1167,7 +1168,7 @@ end
 (*@TODO: should we allow/accumulate free type variables? 	        *)
 (*----------------------------------------------------------------------*)
 and checkAttribute env (loc,AttApp(exp,exprow)) errors =
-  let 
+  let
     val (exp,(errors,tyvars)) = checkExp env exp (errors,Symbol.Map.empty)
     val (fieldsandproperties, exps) = ListPair.unzip exprow
     val fields = List.foldr (fn (Field s,fields) => s :: fields | (_,fields) => fields) [] fieldsandproperties
@@ -1177,7 +1178,7 @@ and checkAttribute env (loc,AttApp(exp,exprow)) errors =
     val (exps, (errors,tyvars)) = checkExps env exps (errors, tyvars)
     val errors = if Symbol.Map.numItems(tyvars)=0
 	 then errors
-	 else Error.error(loc, 
+	 else Error.error(loc,
 			   "free type variables in attribute expression")
 	       ::errors
   in
@@ -1208,14 +1209,14 @@ and checkExBind level [] acc = acc
 (*----------------------------------------------------------------------*)
 and checkSpecItem env (specitem as (loc,prespecitem) : Syntax.SpecItem) acc =
 case prespecitem of
-  ValDesc valdesc => 
+  ValDesc valdesc =>
   (specitem, checkTys 0 (map #2 valdesc) acc)
 
-| TypeDesc typdesc => 
+| TypeDesc typdesc =>
   (specitem, foldl (fn ((tyvarseq,_,tyopt),acc as (errors,tyvars)) =>
-    checkTyOpt 0 tyopt (checkTyVars (loc,tyvarseq) errors, tyvars)) 
+    checkTyOpt 0 tyopt (checkTyVars (loc,tyvarseq) errors, tyvars))
     acc typdesc)
-       
+
 | EqTypeDesc eqtypdesc =>
   (specitem, foldl (fn ((tyvarseq,_),acc as (errors,tyvars)) =>
     (checkTyVars (loc,tyvarseq) errors,tyvars)) acc eqtypdesc)
@@ -1230,22 +1231,22 @@ case prespecitem of
   (specitem, foldl (fn ((_,tyopt),acc) => checkTyOpt 0 tyopt acc) acc exdesc)
 
 | ClassDesc desc =>
-  let 
+  let
     val (desc, acc) = checkClassDesc true env (loc,desc) acc
-  in 
+  in
     ((loc,ClassDesc desc), acc)
   end
 
 | StructureDesc strdesc =>
   let
-    val (strdesc, acc) = 
+    val (strdesc, acc) =
       foldr (fn ((strid,sigexp), (strdesc,acc)) =>
       let
         val (sigexp,acc) = checkSigExp env sigexp acc
       in
         ((strid,sigexp)::strdesc, acc)
       end) ([],acc) strdesc
-  in 
+  in
     ((loc,StructureDesc strdesc), acc)
   end
 
@@ -1266,7 +1267,7 @@ case prespecitem of
 (* Check a specification						*)
 (*----------------------------------------------------------------------*)
 and checkSpec env spec (errors,tyvars) =
-let 
+let
   val (vars, tycons) = specIds spec
 
   (*..................................................................*)
@@ -1274,15 +1275,15 @@ let
   (*..................................................................*)
 (*
   val errors =
-    checkDupLocAtoms 
+    checkDupLocAtoms
     (vars, "duplicate specifications for variable or constructor") errors
 *)
 
   (*..................................................................*)
   (* No description may describe the same type identifier twice       *)
   (*..................................................................*)
-  val errors = 
-    checkDupLocAtoms 
+  val errors =
+    checkDupLocAtoms
     (tycons, "duplicate specifications for type constructor") errors
 
 in
@@ -1299,7 +1300,7 @@ end
 (*----------------------------------------------------------------------*)
 and checkSigExp env (sigexp as (loc,presigexp) : Syntax.SigExp) acc =
 case presigexp of
-  SigSpec spec => 
+  SigSpec spec =>
   let
     val (spec, acc) = checkSpec env spec acc
   in
@@ -1320,12 +1321,12 @@ case presigexp of
 (*----------------------------------------------------------------------*)
 (* Check a structure expression						*)
 (*----------------------------------------------------------------------*)
-and checkStrExp 
-  (env as (level,ie)) 
-  (strexp as (loc,prestrexp) : Syntax.StrExp) 
+and checkStrExp
+  (env as (level,ie))
+  (strexp as (loc,prestrexp) : Syntax.StrExp)
   acc =
 case prestrexp of
-  Struct dec => 
+  Struct dec =>
   let
     val (dec, acc, ie) = checkDec env dec acc
   in
@@ -1335,7 +1336,7 @@ case prestrexp of
 | Strid longid =>
   (strexp, acc)
 
-| StrTransparent(strexp, sigexp) => 
+| StrTransparent(strexp, sigexp) =>
   let
     val (strexp, acc) = checkStrExp env strexp acc
     val (sigexp, acc) = checkSigExp env sigexp acc
@@ -1343,7 +1344,7 @@ case prestrexp of
     ((loc, StrTransparent(strexp, sigexp)), acc)
   end
 
-| StrOpaque(strexp, sigexp) => 
+| StrOpaque(strexp, sigexp) =>
   let
     val (strexp, acc) = checkStrExp env strexp acc
     val (sigexp, acc) = checkSigExp env sigexp acc
@@ -1351,14 +1352,14 @@ case prestrexp of
     ((loc, StrOpaque(strexp, sigexp)), acc)
   end
 
-| FunApp(id, strexp) => 
+| FunApp(id, strexp) =>
   let
     val (strexp, acc) = checkStrExp env strexp acc
   in
     ((loc, FunApp(id, strexp)), acc)
   end
 
-| StrLet(dec, strexp) => 
+| StrLet(dec, strexp) =>
   let
     val (dec, acc, ie) = checkDec env dec acc
     val (strexp, acc) = checkStrExp (level,ie) strexp acc
@@ -1377,7 +1378,7 @@ let
         Structure bindings =>
 	let val strids = strids @ (map #1 bindings)
 	    val errors = checkDupAtoms (loc, strids,"duplicate top-level structure bindings")  errors
-	in	
+	in
            loop (rest,strids,sigids,funids,errors)
 	end
       | Signature bindings =>
@@ -1392,7 +1393,7 @@ let
 	in
            loop (rest,strids,sigids,funids,errors)
 	end
-      | Local(_,bindings) => 
+      | Local(_,bindings) =>
 	loop (bindings@rest,strids,sigids,funids,Error.warning(loc, "skipping local declarations in source file "^msg)::errors)
       | _ =>
 	loop (rest,strids,sigids,funids,Error.error(loc, "illegal top-level declaration in source file "^msg)::errors)
@@ -1425,7 +1426,7 @@ let
         let
           fun loop2 [] = loop rest
             | loop2 (entry as (id', _, _)::rest2) =
-              if Symbol.equal(id,id') 
+              if Symbol.equal(id,id')
               then SOME (loc, Structure entry)
               else loop2 rest2
         in
@@ -1439,7 +1440,7 @@ let
         let
           fun loop2 [] = loop rest
             | loop2 (entry as (id', _)::rest2) =
-              if Symbol.equal(id,id') 
+              if Symbol.equal(id,id')
               then SOME (loc, Signature entry)
               else loop2 rest2
         in
@@ -1449,11 +1450,11 @@ let
 
       | Functor bindings =>
         if enttype = Entity.Fun
-        then 
+        then
         let
           fun loop2 [] = loop rest
             | loop2 (entry as (id', _, _, _)::rest2) =
-              if Symbol.equal(id,id') 
+              if Symbol.equal(id,id')
               then SOME (loc, Functor entry)
               else loop2 rest2
         in

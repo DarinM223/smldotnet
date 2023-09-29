@@ -4,15 +4,16 @@
 structure Elab :> ELAB =
 struct
 
-type Sig = 
+type Sig =
   SMLTy.DatEnv * Env.Sig
-type Str = 
+type Str =
   SMLTy.DatEnv * SMLTy.Realisation * Env.Env*SMLTerm.StrExp
 
 structure T = SMLTerm
 
-local open 
-  Syntax ElabOps Env EnvOps SMLTy SMLPrimTy SMLSch SMLSchOps ElabTy ElabPat 
+
+local open
+  Syntax ElabOps Env EnvOps SMLTy SMLPrimTy SMLSch SMLSchOps ElabTy ElabPat
   ElabCore ElabState
 in
 
@@ -23,24 +24,24 @@ structure Map = Symbol.Map
 
 val tempstrid = Id.fromString "$temp"
 
-fun addOpen(openedstructures,strexp as (loc,_)) = 
+fun addOpen(openedstructures,strexp as (loc,_)) =
 	if List.null openedstructures then strexp else
-	(loc,Syntax.StrLet([(loc, Syntax.Open openedstructures)], strexp))	
+	(loc,Syntax.StrLet([(loc, Syntax.Open openedstructures)], strexp))
 
 fun funDerived (funid,funarg,siginfo,strexp as (loc,_)) =
 let
-  val strexp = 
+  val strexp =
       case siginfo of
         SigNone => strexp
       | SigAbstract sigexp => (loc,StrOpaque(strexp, sigexp))
       | SigConcrete sigexp => (loc,StrTransparent(strexp, sigexp))
 
-  val triple = 
+  val triple =
     case funarg of
       StructArg (strid,sigexp) => (strid,sigexp,strexp)
-    | SpecArg spec => 
+    | SpecArg spec =>
       (tempstrid,(loc,SigSpec spec),
-        (loc,StrLet([(loc,Open [[tempstrid]])], strexp)))         
+        (loc,StrLet([(loc,Open [[tempstrid]])], strexp)))
 in
   triple
 end
@@ -50,13 +51,13 @@ end
 (*----------------------------------------------------------------------*)
 fun infStrExp (topB, B : Basis) (loc, prestrexp) =
 case prestrexp of
-  
+
 (* Rule 50 *)
   Struct strdec =>
   let
     val (d, E) = infStrDec (topB, B) strdec
   in
-    (T.StrLet(d, 
+    (T.StrLet(d,
     T.Struct (
       loc,
       Map.mapPartiali (fn (v,ValBind.VarSch _) => SOME v | _ =>NONE) (VEofE E),
@@ -72,7 +73,7 @@ case prestrexp of
   end
 
 (* Rule 52 *)
-| StrTransparent(strexp, sigexp) => 
+| StrTransparent(strexp, sigexp) =>
   let
     val (e, E) = infStrExp (topB, B) strexp
     val sigma as (_, sigE) = infSigExp' (BnoPath B) sigexp
@@ -97,7 +98,7 @@ case prestrexp of
     val (psi, exmap) = Match.match1 loc (E, (T',E'))
     val E'' = appRealisationE psi E'
     val _  = if Controls.get showElab
-             then Debug.print ("str:\n" ^ "E = " ^ EnvOps.EtoString E ^ 
+             then Debug.print ("str:\n" ^ "E = " ^ EnvOps.EtoString E ^
                "\nrealised sig:\n" ^
                "E = " ^ EnvOps.EtoString E'' ^ "\n")
              else ()
@@ -105,7 +106,7 @@ case prestrexp of
     addRealisation psi;
     let
       val e' = Match.match2 (tempstrid,loc) (E, E'')
-      
+
     in
       (T.StrLet([T.Structure(tempstrid, e)], e'), renameE exmap E')
     end
@@ -119,25 +120,25 @@ case prestrexp of
     val E = infStrExp (topB, B) strexp
   in
   (*@TODO: it would be nicer if funid had its own location in the grammer;
-     we currently reconstruct an approximate one for lookupFunId 
+     we currently reconstruct an approximate one for lookupFunId
   *)
   case EnvLookup.lookupFunId(FofB B,{left= #left loc,right= #left locStrExp}, funid) of
-    NONE => 
+    NONE =>
     (* error already reported in lookupFunId *)
     (T.Struct(loc,Map.empty, Map.empty), emptyE)
-  | SOME (Phi, fileref, longids) =>    
+  | SOME (Phi, fileref, longids) =>
     let
       val ParseManager.Success (topbind,sourcemap) = ParseManager.parse fileref
-      val SOME topbind  = 
+      val SOME topbind  =
         SyntaxCheck.find (topbind, (Entity.Fun, funid))
 
       val (locFunBind,Syntax.Functor [a]) = topbind
 
       val (strid, sigexp as (locSigExp,_), strexp' as (locBody,_)) = funDerived a
 
-      val (d, E1) = infStrDec (topB, B) 
+      val (d, E1) = infStrDec (topB, B)
         [(locStrExp, Structure [(tempstrid, strexp, SigNone)])]
-      val bodyexp =  
+      val bodyexp =
 	addOpen(longids,(locFunBind,StrLet([(locSigExp, Structure [(strid, (locSigExp,Strid [tempstrid]), SigConcrete sigexp)])],strexp')))
       val (e, E2) = infStrExp (topB, BplusE topB E1) bodyexp
     in
@@ -180,7 +181,7 @@ case prestrdecitem of
 (* Rule 56 *)
 | _ =>
   infDecItem (CofB B) true strdecitem
-  
+
 and infStrDec (topB, B : Basis) dec =
 case dec of
 
@@ -208,7 +209,7 @@ case strbinds of
 
 | (strid,strexp as (loc,_),siginfo)::strbind =>
   let
-    val strexp' = 
+    val strexp' =
       case siginfo of
         SigNone => strexp
       | SigAbstract sigexp => (loc,StrOpaque(strexp, sigexp))
@@ -222,10 +223,10 @@ case strbinds of
 (*----------------------------------------------------------------------*)
 (* Functor Bindings (p36 Defn)						*)
 (*----------------------------------------------------------------------*)
-(* infFunBind returns a pair (F,es) of 
-   - F, a functor environment 
-   - es, the list of functor bodies to check for semantic restrictions 
-    (ElabCheck.checkStrExp) after constraint solving 
+(* infFunBind returns a pair (F,es) of
+   - F, a functor environment
+   - es, the list of functor bodies to check for semantic restrictions
+    (ElabCheck.checkStrExp) after constraint solving
 *)
 and infFunBind (topB, B : Basis) funbinds =
 (* Rule 86 *)
@@ -240,7 +241,7 @@ case funbinds of
     val singletonSE = Map.insert(Map.empty, strid, E)
     val (e, E') = infStrExp (topB, BplusE B (SEinE singletonSE)) strexp
     val (F,es) = infFunBind (topB, B) funbind
-    val T' = (TyName.Set.filter 
+    val T' = (TyName.Set.filter
       (fn tn => not (TyName.earlier(tn, stamp))) (tynamesE E'))
     val Phi = (T, (E, (T',E')))
     val SOME (fileref, longids) = SourceManager.fileRefFor (getEntity ())
@@ -253,7 +254,7 @@ case funbinds of
 (*----------------------------------------------------------------------*)
 and infSigExp stamp (B : Basis) (loc,presigexp) =
 case presigexp of
-  
+
 (* Rule 62 *)
   SigSpec spec =>
   infSpec stamp B spec
@@ -261,7 +262,7 @@ case presigexp of
 (* Rule 63: rename bound variables to satisfy side condition *)
 | Sigid sigid =>
   (case EnvLookup.lookupSigId(GofB B, loc, sigid) of
-    NONE => 
+    NONE =>
     (* error reported in lookupSigId *)
     emptyE
   | SOME (T,E) =>
@@ -278,24 +279,24 @@ case presigexp of
     val ty = infTy (CofB B) typ
   in
     case EnvLookup.lookupTyCon (E, loc, longtycon) of
-    NONE => 
-    (error (Error.error(loc, 
+    NONE =>
+    (error (Error.error(loc,
       "type constructor not bound in signature: " ^ Longid.toString
       longtycon), []); emptyE)
 
   | SOME tystr =>
     if TyStr.arity tystr <> length tyvarseq
-    then 
-      (error (Error.error(loc, "type definition has wrong arity"),[]); emptyE) 
+    then
+      (error (Error.error(loc, "type definition has wrong arity"),[]); emptyE)
     else case TyStr.tyname tystr of
-      NONE => 
-      (error (Error.error(loc, 
+      NONE =>
+      (error (Error.error(loc,
       "type definition is not atomic: " ^ SMLTy.toString ty), []); emptyE)
 
     | SOME tyname =>
-      let 
+      let
         (*@TODO: check that tyname and ty have same equality status *)
-        val psi = TyName.Map.insert(TyName.Map.empty, tyname, 
+        val psi = TyName.Map.insert(TyName.Map.empty, tyname,
           (map TyVar.explicit tyvarseq, ty))
         val E' = appRealisationE psi E
       in
@@ -311,18 +312,18 @@ and infSigExp' (B : Basis) sigexp =
     val stamp = getStamp ()
     val E = infSigExp stamp B sigexp
   in
-    (TyName.Set.filter 
+    (TyName.Set.filter
     (fn tn => not (TyName.earlier(tn, stamp))) (tynamesE E), E)
   end
 
 (*----------------------------------------------------------------------*)
 (* Specifications (p33 Defn)						*)
 (*----------------------------------------------------------------------*)
-and infSpecItem stamp (B : Basis) ((loc,prespecitem) : SpecItem) = 
+and infSpecItem stamp (B : Basis) ((loc,prespecitem) : SpecItem) =
 case prespecitem of
 
 (* Rule 68 *)
-  ValDesc valdesc => 
+  ValDesc valdesc =>
   let
     val VE = infValDesc loc (CofB B) valdesc
   in
@@ -338,7 +339,7 @@ case prespecitem of
   TEinE (infEqTypeDesc (CofB B) typdesc)
 
 (* Rule 71 *)
-| DatatypeDesc (datdesc, typbindopt) => 
+| DatatypeDesc (datdesc, typbindopt) =>
   let
     val (VE, TE, r) = infDatBind true (CofB B) (datdesc, typbindopt)
   in
@@ -359,7 +360,7 @@ case prespecitem of
 
 (* Rule 73a: class declarations *)
 (*@BUG: this case is incomplete *)
-| ClassDesc (ClassTypeSpec 
+| ClassDesc (ClassTypeSpec
   {tycon, modifiers, conty, inherits, methodspec }) =>
   let
     val C = CofB B
@@ -389,7 +390,7 @@ case prespecitem of
 
     val interfaces = map (infTy C') inherits
 
-    val superty = 
+    val superty =
 (*
     case super of
       NONE =>
@@ -440,8 +441,8 @@ case prespecitem of
 
 and lookupTyName E loc longtycon =
   case EnvLookup.lookupTyCon (E, loc, longtycon) of
-    NONE => 
-    (error (Error.error(loc, 
+    NONE =>
+    (error (Error.error(loc,
       "type constructor not bound in signature: " ^ Longid.toString
       longtycon), []); NONE)
   | SOME tystr =>
@@ -454,28 +455,28 @@ and lookupTyName E loc longtycon =
         SOME (tyvars, tyname) =>
         SOME (tyvars, tyname)
 
-      | NONE => 
+      | NONE =>
         case TyStr.fromConcrete tystr of
           NONE =>
-          (error (Error.error(loc, "type constructor not datatype or abstract: " 
+          (error (Error.error(loc, "type constructor not datatype or abstract: "
           ^ Longid.toString longtycon), []); NONE)
         | SOME (tyvars, ty) =>
           case SMLTy.fromConsType ty of
-            SOME (tys, tyname) => 
+            SOME (tys, tyname) =>
             (* is it eta-equivalent to a tyname *)
             if length tys = length tyvars
                andalso List.all SMLTy.eq (ListPair.zip(tys,List.map SMLTy.tyVarType tyvars))
             then SOME (tyvars, tyname)
-            else (error (Error.error(loc, "type constructor not datatype or abstract: " 
+            else (error (Error.error(loc, "type constructor not datatype or abstract: "
                                           ^ Longid.toString longtycon), []); NONE)
 
-          | NONE =>        
-            (error (Error.error(loc, "type constructor not datatype or abstract: " 
+          | NONE =>
+            (error (Error.error(loc, "type constructor not datatype or abstract: "
           ^ Longid.toString longtycon), []); NONE)
 
 and infSpec' stamp (B : Basis) Esofar (spec : Spec) =
 case spec of
-  [] => 
+  [] =>
   Esofar
   (* type and structure sharing code adapted from Hamlet1.2 with kind permission from the author, Andreas Rossberg*)
   (* Rule 78 *)
@@ -487,12 +488,12 @@ case spec of
     val results = eqtyfuns@noneqtyfuns
   in
     (* are they all flexible? *)
-    if List.exists(fn(tyvars,tn)=>TyName.earlier (tn,stamp)) results 
+    if List.exists(fn(tyvars,tn)=>TyName.earlier (tn,stamp)) results
     then (error (Error.error(loc, "sharing type equation mentions free type names"), []);
           infSpec' stamp B Esofar spec)
     else
     case results of
-      [] => 
+      [] =>
       infSpec' stamp B Esofar spec
 
     | (tyvars,tn)::results' =>
@@ -514,10 +515,10 @@ case spec of
   (* Derived rule *)
 | (loc,Sharing longids)::spec =>
 	let
-            fun fromFlexibleTyName tystr = 
-                case TyStr.tyname tystr of 
-                    SOME tn => 
-                     if TyName.earlier (tn,stamp) 
+            fun fromFlexibleTyName tystr =
+                case TyStr.tyname tystr of
+                    SOME tn =>
+                     if TyName.earlier (tn,stamp)
                      then NONE
                      else SOME (TyStr.tyvars tystr,tn)
                   | NONE => NONE
@@ -525,7 +526,7 @@ case spec of
 	    fun shareFlexibleTyName(tycon,tyfun1,tyfun2, phi) =
 		let
                     (* re-order tyfuns by equality *)
-                    val ((tyvars1,t1),(tyvars2,t2)) = 
+                    val ((tyvars1,t1),(tyvars2,t2)) =
                         case (TyName.equality (#2 tyfun1), TyName.equality (#2 tyfun2)) of
                              (TyName.Eq,_) => (tyfun1,tyfun2)
                            | (_,TyName.Eq) => (tyfun2,tyfun1)
@@ -547,16 +548,16 @@ case spec of
                              in
                                  case (fromFlexibleTyName tystr1,fromFlexibleTyName tystr2)
                                   of (SOME tyfun1, SOME  tyfun2) =>
-                                     if TyStr.arity tystr1 = TyStr.arity tystr2  
+                                     if TyStr.arity tystr1 = TyStr.arity tystr2
                                      then shareFlexibleTyName(tycon,tyfun1,tyfun2, phi)
                                      else (error (Error.error(loc, "types in sharing spec have inconsistent arities for constructor"^Id.toString tycon), []);
                                            phi)
-                                   | (NONE,NONE) => 
+                                   | (NONE,NONE) =>
                                      (* if they're both non-flexible, skip *)
                                      (* NB: this is a departure from the Definition, which says you should reject, but NJ seems to accept it.*)
                                      phi
                                    | _ => (* if one is flexible, but the other not, report an error *)
-                                     (error(Error.error(loc, "structure contains both flexible and non-flexible type " ^Id.toString tycon),[]); 
+                                     (error(Error.error(loc, "structure contains both flexible and non-flexible type " ^Id.toString tycon),[]);
                                       phi)
                              end)
 		    phi TE1
@@ -608,7 +609,7 @@ case spec of
   end
 
 and infSpec stamp (B : Basis) (spec : Spec) = infSpec' stamp B emptyE spec
- 
+
 (*----------------------------------------------------------------------*)
 (* Value Descriptions (p34 Defn)					*)
 (* Extended to deal with overloading.                                   *)
@@ -616,7 +617,7 @@ and infSpec stamp (B : Basis) (spec : Spec) = infSpec' stamp B emptyE spec
 (* Rule 79 *)
 and infValDesc loc C valdesc =
 let
-  fun infValDesc' [] = 
+  fun infValDesc' [] =
       Map.empty
 
     | infValDesc' ((var,tyexp)::valdesc) =
@@ -640,16 +641,16 @@ in
       [(tyvar, basetys)] =>
       let
         val tynameset =
-            foldl 
+            foldl
 	      (fn (basety, tynameset) =>
 	       case SMLTy.fromConsType basety of
-		   SOME([],tyname) => 
-		     TyName.Set.add(tynameset, tyname) 
-		 | _ => 
-		     (error (Error.error(loc,"identifier overloaded at a type \                                                                                            \distinct from some type name: " ^ 
+		   SOME([],tyname) =>
+		     TyName.Set.add(tynameset, tyname)
+		 | _ =>
+		     (error (Error.error(loc,"identifier overloaded at a type \                                                                                            \distinct from some type name: " ^
 					 (SMLTy.toString basety)),[]);
 		      tynameset))
-	      TyName.Set.empty 
+	      TyName.Set.empty
 	      basetys
         val tyvar' = freshTyVar (TyVar.Overloaded tynameset)
         val ty = SMLTy.appSubst [(tyvar, SMLTy.tyVarType tyvar')] ty
@@ -658,22 +659,22 @@ in
       end
 
     | _ =>
-      (error (Error.error 
-	      (loc, 
-	       "expected just one type variable in overloaded type"), 
+      (error (Error.error
+	      (loc,
+	       "expected just one type variable in overloaded type"),
 	      []);
       Map.empty)
   end
 
   else infValDesc' valdesc
 end
-  
+
 
 (*----------------------------------------------------------------------*)
 (* Type Descriptions (p35 Defn)						*)
 (*----------------------------------------------------------------------*)
 (* Rule 80 *)
-and infTypeDesc C [] = 
+and infTypeDesc C [] =
     Map.empty
 
   | infTypeDesc C ((tyvarseq,tycon,NONE)::typdesc) =
@@ -681,7 +682,7 @@ and infTypeDesc C [] =
       val TE = infTypeDesc C typdesc
       val tyname = freshTyName (pathofC C @ [tycon], TyName.NotEq)
     in
-      Map.insert(TE, tycon, 
+      Map.insert(TE, tycon,
         TyStr.makeAbstract (map TyVar.explicit tyvarseq, tyname))
     end
 
@@ -690,7 +691,7 @@ and infTypeDesc C [] =
       val ty = infTy C typ
       val TE = infTypeDesc C typdesc
     in
-      Map.insert (TE, tycon, 
+      Map.insert (TE, tycon,
         TyStr.makeConcrete (map TyVar.explicit tyvarseq, ty))
     end
 
@@ -698,7 +699,7 @@ and infTypeDesc C [] =
 (* Equality type Descriptions (p35 Defn)				*)
 (*----------------------------------------------------------------------*)
 (* Rule 80 *)
-and infEqTypeDesc C [] = 
+and infEqTypeDesc C [] =
     Map.empty
 
   | infEqTypeDesc C ((tyvarseq,tycon)::typdesc) =
@@ -706,7 +707,7 @@ and infEqTypeDesc C [] =
        val TE = infEqTypeDesc C typdesc
        val tyname = freshTyName (pathofC C @ [tycon], TyName.Eq)
     in
-      Map.insert(TE, tycon, 
+      Map.insert(TE, tycon,
         TyStr.makeAbstract(map TyVar.explicit tyvarseq, tyname))
     end
 
@@ -716,7 +717,7 @@ and infEqTypeDesc C [] =
 (* Exception Descriptions (p35 Defn)					*)
 (*----------------------------------------------------------------------*)
 (* Rule 83 *)
-and infExDesc C loc [] = 
+and infExDesc C loc [] =
     Map.empty
 
   | infExDesc C loc (((_,excon), tyopt)::exdesc) =
@@ -736,7 +737,7 @@ and infExDesc C loc [] =
           val ty = infTy C typ
           val exname = freshTyName (pathofC C @ [excon], TyName.NotEq)
         in
-          Map.insert (EE, excon, 
+          Map.insert (EE, excon,
             (SMLTy.funType (ty, exnType), exname))
         end
     end
@@ -751,15 +752,15 @@ case strdesc of
   Map.empty
 
 | (strid,sigexp)::strdesc =>
-  let 
+  let
     val E = infSigExp stamp B sigexp
     val SE = infStrDesc stamp B strdesc
   in
     Map.insert(SE, strid, E)
   end
 
-fun BplusOpened(B,loc,strids) = 
-  let val E' = List.foldl (fn (strid,E) => 
+fun BplusOpened(B,loc,strids) =
+  let val E' = List.foldl (fn (strid,E) =>
                            EplusE E (#1 (EnvLookup.lookupStr (EofB B, loc, strid))))
                            emptyE
 	                   strids
@@ -773,13 +774,13 @@ fun BplusOpened(B,loc,strids) =
 fun infTopSigExp B openedstructures (sigid,sigexp as (loc,_)) =
 let
   val B = BplusOpened(B,loc,openedstructures)
-  val (sigma, errors, DE, _) = 
+  val (sigma, errors, DE, _) =
     runelab (Entity.Sig, sigid) (fn () => infSigExp' B sigexp)
 in
   if Controls.get showElab (* andalso List.all (not o Error.isSerious) errors *)
   then Debug.print ("results:\n" ^
     "E = " ^ EnvOps.EtoString (#2 sigma) ^ "\n")
-  else (); 
+  else ();
   ((DE, sigma), errors)
 end
 
@@ -790,7 +791,7 @@ end
 fun infTopStrExp B openedstructures (strid,strexp as (loc,_),siginfo) =
 let
 
-  val strexp' = 
+  val strexp' =
       case siginfo of
         SigNone => strexp
       | SigAbstract sigexp => (loc,StrOpaque(strexp, sigexp))
@@ -798,9 +799,9 @@ let
 
   val strexp' = addOpen(openedstructures,strexp')
 
-  val ((e,E), errors, DE, psi) = 
-    runelab (Entity.Str, strid) 
-    (fn () => 
+  val ((e,E), errors, DE, psi) =
+    runelab (Entity.Str, strid)
+    (fn () =>
      let val _ = TyConstraint.init ()
          val result as (e,_) = infStrExp (B, BplusStr B strid) strexp'
      in if noSeriousErrors()
@@ -809,7 +810,7 @@ let
 		  then ElabCheck.checkStrExp e
 	      else ())
 	else ();
-	result 
+	result
      end)
 
 in
@@ -829,9 +830,9 @@ fun infTopFunExp B openedstructures (arg as (funid,funarg,siginfo,strexp as (loc
 let
   val B = BplusOpened(B,loc,openedstructures) (* loc is bogus *)
   val (strid,sigexp,strexp) = funDerived arg
-  val (F, errors, DE, psi) = 
-    runelab (Entity.Fun, funid) 
-    (fn () => 
+  val (F, errors, DE, psi) =
+    runelab (Entity.Fun, funid)
+    (fn () =>
          let val _ = TyConstraint.init ()
          val (F,es) = infFunBind (B, BplusStr B funid) [(funid,strid,sigexp,strexp)]
      in if noSeriousErrors()
@@ -840,7 +841,7 @@ let
 		  then List.app ElabCheck.checkStrExp es
 	      else ())
 	else ();
-	F 
+	F
      end)
 in
   (valOf(Map.find(F, funid)), errors)

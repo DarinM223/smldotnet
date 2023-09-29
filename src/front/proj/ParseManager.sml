@@ -1,6 +1,6 @@
 (*======================================================================*)
 (* Parse manager: obtain source files from SourceManager, parse them    *)
-(* and check syntactic restrictions.                                    *) 
+(* and check syntactic restrictions.                                    *)
 (*======================================================================*)
 structure ParseManager :> PARSEMANAGER =
 struct
@@ -19,6 +19,7 @@ datatype Result =
   NotFound
 | Fail
 | Success of Syntax.Dec * SourceMap.sourcemap
+
 
 (*----------------------------------------------------------------------*)
 (* Kill the cache							*)
@@ -40,15 +41,15 @@ fun doparse (fileref as (file,time)) =
         ErrorManager.printErrors (sourcemap, errors);
         if List.exists Error.isSerious errors
         then Fail
-        else         
+        else
           PrintManager.process ("Checking", false)
           (fn () =>
           let
-            val { AST, errors } = 
+            val { AST, errors } =
             SyntaxCheck.check { AST = valOf AST, sourcemap = sourcemap }
           in
-            ErrorManager.printErrors (sourcemap,errors); 
-            if List.exists Error.isSerious errors 
+            ErrorManager.printErrors (sourcemap,errors);
+            if List.exists Error.isSerious errors
             then Fail
             else
             let
@@ -70,14 +71,14 @@ fun parse (fileref as (file,time))  =
 
     (* If it's not in the cache then we must re-parse *)
     NONE =>
-    doparse fileref    
+    doparse fileref
 
   | (* If it's in the cache then only re-parse if the timestamps differ *)
     SOME (dec, sourcemap, cachetime) =>
     if Time.<(time, cachetime) orelse Time.>(time, cachetime)
     then doparse fileref
     else Success (dec, sourcemap)
- 
+
 
 end (* of struct *)
 

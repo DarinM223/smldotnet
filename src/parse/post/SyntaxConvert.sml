@@ -5,6 +5,7 @@
 structure SyntaxConvert :> SYNTAXCONVERT =
 struct
 
+
 open Syntax
 structure SS = SmallSyntax
 structure LS = Longid.Set
@@ -14,7 +15,7 @@ structure LS = Longid.Set
 (*----------------------------------------------------------------------*)
 val strip : Syntax.longid -> Syntax.longid = rev o tl o rev
 
-fun mentions longids = 
+fun mentions longids =
   Longid.Set.addList(Longid.Set.empty, map strip longids)
 
 (*----------------------------------------------------------------------*)
@@ -41,10 +42,10 @@ and convertTyOpts (tyopts, S) = foldl convertTyOpt S tyopts
 
 (* ..and for type and datatype bindings *)
 and convertTypBind (typbind : TypBind, S) = convertTys (map #3 typbind, S)
-and convertDatBind (datbind : DatBind, S) = 
+and convertDatBind (datbind : DatBind, S) =
     foldl (fn ((_,_,conbinds), S) => convertTyOpts (map #2 conbinds, S))
     S datbind
-    
+
 (*----------------------------------------------------------------------*)
 (* Extend the set S with the structures referenced in a pattern.	*)
 (*----------------------------------------------------------------------*)
@@ -101,35 +102,35 @@ case preexp of
 | LongVid(Long longid)=> join (LS.singleton(strip longid), D)
 | LongVid _           => D
 | Fn match            => convertMatch (match, D)
-| Let(dec, exp)       => 
+| Let(dec, exp)       =>
   makeLocal(rev (convertDec (dec, [])), rev (convertExp (exp, []))) @ D
 
-| LetUnless(dec, exp, match) => 
+| LetUnless(dec, exp, match) =>
   makeLocal(convertMatch (match, []) @ rev (convertDec (dec, [])), rev (convertExp (exp, []))) @ D
 
-| (Constraint(e, ty) | ConstraintGt(e,ty)) => 
+| (Constraint(e, ty) | ConstraintGt(e,ty)) =>
   join (convertTy (ty, LS.empty), convertExp (e, D))
 
-| ClassWith(e,m) => 
+| ClassWith(e,m) =>
   convertMethBind (m, convertExp (e, D))
 
-| (Raise e | Pure e) => 
+| (Raise e | Pure e) =>
   convertExp (e, D)
 
-| Record exprow       => 
+| Record exprow       =>
   foldl (fn ((_,e),D) => convertExp (e,D)) D exprow
 
-| (Case(e, m) | Handle(e, m)) => 
+| (Case(e, m) | Handle(e, m)) =>
   convertMatch (m, convertExp (e, D))
 
-| If(e1, e2, e3) => 
+| If(e1, e2, e3) =>
   convertExp (e1, convertExp (e2, convertExp (e3, D)))
 
 | (Orelse(e1, e2) | Andalso(e1,e2) | While(e1,e2) | App(e1,e2)
-   | Synchronized(e1,e2)) => 
+   | Synchronized(e1,e2)) =>
   convertExp (e1, convertExp (e2, D))
 
-| (Sequence es | List es | Tuple es) => 
+| (Sequence es | List es | Tuple es) =>
   foldl convertExp D es
 
 | FlatApp _ =>
@@ -142,30 +143,30 @@ case preexp of
 | LongVid(Long longid)=> join (LS.singleton(strip longid), D)
 | LongVid _           => D
 | Fn match            => convertMatch (match, D)
-| Let(dec, exp)       => 
+| Let(dec, exp)       =>
   makeLocal(rev (convertDec (dec, [])), rev (convertExp (exp, []))) @ D
 
-| LetUnless(dec, exp, match) => 
+| LetUnless(dec, exp, match) =>
   makeLocal(convertMatch (match, []) @ rev (convertDec (dec, [])), rev (convertExp (exp, []))) @ D
 
-| Constraint(e, ty) => 
+| Constraint(e, ty) =>
   join (convertTy (ty, LS.empty), convertExp (e, D))
-| ConstraintGt(e,ty) => 
+| ConstraintGt(e,ty) =>
   join (convertTy (ty, LS.empty), convertExp (e, D))
 
-| ClassWith(e,m) => 
+| ClassWith(e,m) =>
   convertMethBind (m, convertExp (e, D))
 
 | Raise e => convertExp (e, D)
 | Pure e => convertExp (e, D)
 
-| Record exprow       => 
+| Record exprow       =>
   foldl (fn ((_,e),D) => convertExp (e,D)) D exprow
 
 | Case(e, m) => convertMatch (m, convertExp (e, D))
 | Handle(e, m) => convertMatch (m, convertExp (e, D))
 
-| If(e1, e2, e3) => 
+| If(e1, e2, e3) =>
   convertExp (e1, convertExp (e2, convertExp (e3, D)))
 
 | Orelse(e1, e2) => convertExp (e1, convertExp (e2, D))
@@ -182,13 +183,13 @@ case preexp of
   Debug.fail "SyntaxConvert.convertExp: FlatApp"
 
 and convertMatch (match,res) =
-    foldl (fn ((pat,exp),D) => 
+    foldl (fn ((pat,exp),D) =>
       convertExp (exp, join (convertPat (pat,LS.empty), D)))
     res match
 
 and convertFValBind (binds,res) =
     foldl (fn ((_, _, pats, exp, tyopt), D) =>
-      convertExp (exp, 
+      convertExp (exp,
         join (convertPats (pats, convertTyOpt (tyopt, LS.empty)), D)))
     res binds
 
@@ -196,15 +197,15 @@ and convertBodyOpt (NONE,D) = D
   | convertBodyOpt (SOME (pat,exp),D) =
     convertExp (exp, join (convertPat (pat, LS.empty), D))
 
-(*@TODO: cvr: complete and review calls *) 
+(*@TODO: cvr: complete and review calls *)
 and convertAttribute ((loc,AttApp(e,namedargs)),D) =
     foldl (fn ((_,attarg),D) => convertExp (attarg,D)) (convertExp(e,D)) namedargs
 
 and convertAttributes(atts,D) = foldl convertAttribute D atts
- 
+
 and convertMethBindItem ((attributes,mods,binds),res) =
     foldl (fn ((_, _, bodyopt, tyopt), D) =>
-      convertBodyOpt (bodyopt, 
+      convertBodyOpt (bodyopt,
         join (convertTyOpt (tyopt, LS.empty), D)))
     (convertAttributes (attributes,res)) binds
 
@@ -217,19 +218,19 @@ and convertDecItem ((loc,predecitem) : DecItem, D) =
 case predecitem of
 (* SL: or *)
 (*
-  (Val(_, match) | ValRec(_, match)) => 
+  (Val(_, match) | ValRec(_, match)) =>
   convertMatch (match, D)
 *)
   Val(_, match) => convertMatch (match, D)
 | ValRec(_, match) => convertMatch (match, D)
 
-| Fun(_, bindings)    => 
+| Fun(_, bindings)    =>
   foldl convertFValBind D bindings
 
-| Type typbind        => 
+| Type typbind        =>
   join (convertTypBind (typbind, LS.empty), D)
 
-| Datatype(datbind, NONE) => 
+| Datatype(datbind, NONE) =>
   join (convertDatBind (datbind, LS.empty), D)
 
 | Datatype(datbind, SOME typbind) =>
@@ -239,19 +240,19 @@ case predecitem of
   join (convertDatBind (datbind, LS.empty), convertDec (dec, D))
 
 | Abstype(datbind, SOME typbind, dec) =>
-  convertDec (dec, join 
+  convertDec (dec, join
     (convertDatBind (datbind, convertTypBind (typbind, LS.empty)), D))
 
 | DatatypeCopy(_, [id]) =>
   D
-  
+
 | DatatypeCopy(_, longid) =>
   join (LS.singleton (strip longid), D)
 
 | Exception exbinds =>
   join (convertExBinds (exbinds, LS.empty), D)
 
-| Local(dec1, dec2)   => 
+| Local(dec1, dec2)   =>
   let
     val D1 = convertDec (dec1, [])
     val D2 = convertDec (dec2, [])
@@ -259,19 +260,19 @@ case predecitem of
     makeLocal(rev D1, rev D2) @ D
   end
 
-| Open longids        => 
+| Open longids        =>
   SS.Open longids :: D
 
-| ClassDec dec         => 
+| ClassDec dec         =>
   convertClassDec (dec, D)
 
-| Structure bindings  => 
-  SS.Structure 
-  (map (fn (strid, strexp, siginfo) =>     
+| Structure bindings  =>
+  SS.Structure
+  (map (fn (strid, strexp, siginfo) =>
     (strid, convertSigInfo (siginfo, convertStrExp strexp))) bindings) :: D
 
-| Signature bindings  => 
-  SS.Signature (map (fn (sigid, sigexp) =>     
+| Signature bindings  =>
+  SS.Signature (map (fn (sigid, sigexp) =>
     (sigid, convertSigExp sigexp)) bindings) :: D
 
 | Functor bindings =>
@@ -299,23 +300,23 @@ and convertExBinds (exbinds, S) = foldl convertExBind S exbinds
 and convertClassDec (ClassType {attributes, conattributes,  pat, inherits, localdec, methoddec, ...}, D) =
       convertAttributes(attributes,[]) @ (*@TODO: cvr: review *)
         convertAttributes(conattributes,[]) @ (*@TODO: cvr: review *)
-          SS.Mention (convertPat (pat, LS.empty)) :: 
-	    makeLocal (rev (convertDec (localdec, [])), 
+          SS.Mention (convertPat (pat, LS.empty)) ::
+	    makeLocal (rev (convertDec (localdec, [])),
 		       rev (convertMethBind (methoddec, []))) @ D
 |   convertClassDec (DelegateType {attributes, conattributes, ty,...}, D) =
       convertAttributes(attributes,[]) @ (*@TODO: cvr: review *)
         convertAttributes(conattributes,[]) @ (*@TODO: cvr: review *)
           (join (convertTy (ty, LS.empty),D))
-and convertStrExp ((loc,prestrexp) : StrExp) = 
+and convertStrExp ((loc,prestrexp) : StrExp) =
 case prestrexp of
   Struct dec          => SS.Struct (rev (convertDec (dec, [])))
 | Strid longid        => SS.Strid longid
-| StrTransparent(strexp, sigexp) => 
+| StrTransparent(strexp, sigexp) =>
   SS.StrConstraint(convertStrExp strexp, convertSigExp sigexp)
-| StrOpaque(strexp, sigexp) => 
+| StrOpaque(strexp, sigexp) =>
   SS.StrConstraint(convertStrExp strexp, convertSigExp sigexp)
 | FunApp(id, strexp)  => SS.FunApp(id, convertStrExp strexp)
-| StrLet(dec, strexp) => 
+| StrLet(dec, strexp) =>
   SS.StrLet(rev (convertDec(dec,[])), convertStrExp strexp)
 
 and convertSigExp ((loc,presigexp) : SigExp) =
@@ -337,28 +338,28 @@ and convertSigInfo (SigConcrete sigexp, strexp) =
     SS.StrConstraint(strexp, convertSigExp sigexp)
   | convertSigInfo (SigNone, strexp) = strexp
 
-and convertFunArg (StructArg(strid, sigexp)) = 
+and convertFunArg (StructArg(strid, sigexp)) =
     [SS.StructureDesc [(strid, convertSigExp sigexp)]]
 
-  | convertFunArg (SpecArg spec) = 
+  | convertFunArg (SpecArg spec) =
     convertSpec spec
 
 and convertClassDesc (ClassTypeSpec {conty,inherits,methodspec,...}) =
-    [SS.SpecMention (convertTys (map #2 methodspec, 
+    [SS.SpecMention (convertTys (map #2 methodspec,
     (convertTyOpt (conty, convertTys (inherits, LS.empty)))))]
-    
+
 and convertSpecItem ((loc,prespecitem) : SpecItem) =
-case prespecitem of 
-  ValDesc valdesc     => 
+case prespecitem of
+  ValDesc valdesc     =>
   [SS.SpecMention (convertTys (map #2 valdesc, LS.empty))]
 
-| TypeDesc typdesc    => 
+| TypeDesc typdesc    =>
   [SS.SpecMention (convertTyOpts (map #3 typdesc, LS.empty))]
 
-| EqTypeDesc _        => 
+| EqTypeDesc _        =>
   []
 
-| DatatypeDesc(datbind, NONE) => 
+| DatatypeDesc(datbind, NONE) =>
   [SS.SpecMention (convertDatBind (datbind, LS.empty))]
 
 | DatatypeDesc(datbind, SOME typbind) =>
@@ -370,30 +371,30 @@ case prespecitem of
 | DatatypeDescCopy(_, longid) =>
   [SS.SpecMention (LS.singleton (strip longid))]
 
-| ExceptionDesc conbinds => 
+| ExceptionDesc conbinds =>
   [SS.SpecMention (convertTyOpts (map #2 conbinds, LS.empty))]
 
-| StructureDesc bindings => 
-  [SS.StructureDesc 
+| StructureDesc bindings =>
+  [SS.StructureDesc
   (map (fn (strid, sigexp) => (strid,convertSigExp sigexp)) bindings)]
 
 | Include sigexp =>
   [SS.Include (convertSigExp sigexp)]
 
-| ClassDesc d =>  
+| ClassDesc d =>
   convertClassDesc d
 
 (* SL: or *)
 (*
 | (Sharing longids | SharingType longids) =>
-  [SS.SpecMention (LS.addList (LS.empty, List.mapPartial 
+  [SS.SpecMention (LS.addList (LS.empty, List.mapPartial
   (fn [id] => NONE | longid => SOME (strip longid)) longids))]
 *)
 | Sharing longids =>
-  [SS.SpecMention (LS.addList (LS.empty, List.mapPartial 
+  [SS.SpecMention (LS.addList (LS.empty, List.mapPartial
   (fn [id] => NONE | longid => SOME (strip longid)) longids))]
 | SharingType longids =>
-  [SS.SpecMention (LS.addList (LS.empty, List.mapPartial 
+  [SS.SpecMention (LS.addList (LS.empty, List.mapPartial
   (fn [id] => NONE | longid => SOME (strip longid)) longids))]
 
 and convertSpec spec = List.concat (map convertSpecItem spec)
