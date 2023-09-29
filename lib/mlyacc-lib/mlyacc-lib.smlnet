@@ -1,0 +1,16 @@
+signature STREAM=base.sig,
+          LR_TABLE=base.sig,
+          TOKEN=base.sig,
+          LR_PARSER=base.sig,
+          LEXER=base.sig,
+          ARG_LEXER=base.sig,
+          PARSER_DATA=base.sig,
+          PARSER=base.sig,
+          ARG_PARSER=base.sig
+
+structure LrTable=lrtable.sml,
+          LrParser=parser2.sml,
+          Stream=stream.sml
+
+functor Join=join.sml,
+        JoinWithArg=join.sml
