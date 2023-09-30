@@ -381,6 +381,9 @@ case prespecitem of
 | Include sigexp =>
   [SS.Include (convertSigExp sigexp)]
 
+| Includes sigexps =>
+  List.map (SS.Include o convertSigExp) sigexps
+
 | ClassDesc d =>
   convertClassDesc d
 

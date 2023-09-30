@@ -186,6 +186,7 @@ and PreSpecItem =
 | DatatypeDescCopy of symbol * longid
 | StructureDesc of (symbol * SigExp) list
 | Include of SigExp
+| Includes of SigExp list
 | SharingType of longid list
 | Sharing of longid list
 | ClassDesc of ClassDesc

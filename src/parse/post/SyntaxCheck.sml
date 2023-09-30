@@ -1257,6 +1257,16 @@ case prespecitem of
     ((loc,Include sigexp), acc)
   end
 
+| Includes sigexps =>
+  let
+    val (sigexps, acc) = foldr (fn (sigexp, (rest, acc)) =>
+      let val (sigexp, acc) = checkSigExp env sigexp acc
+      in (sigexp :: rest, acc)
+      end) ([], acc) sigexps
+  in
+    ((loc, Includes sigexps), acc)
+  end
+
 | Sharing longids =>
   (specitem, acc)
 

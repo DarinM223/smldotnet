@@ -433,6 +433,12 @@ case prespecitem of
 | Include sigexp =>
   infSigExp stamp B sigexp
 
+| Includes sigexps =>
+  List.foldl (fn (exp, env) =>
+    let val env' = infSigExp stamp B exp
+    in EplusE env env'
+    end) emptyE sigexps
+
 (* Rule 78 *)
 | SharingType _ =>
   (Debug.fail "Elab:unexpected type sharing spec")

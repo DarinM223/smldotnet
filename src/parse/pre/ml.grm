@@ -507,6 +507,7 @@ end
     | strbinditem of StrBind
     | strbinditemand of StrBind
     | sigexp of SigExp
+    | sigexps of SigExp list
     | sigexpp of PreSigExp
     | sigexpwp of PreSigExp
     | sigexpw of SigExp
@@ -1340,6 +1341,9 @@ sigexpw
 sigexp  : sigexpp       (({left=sigexppleft,right=sigexppright},(sigexpp)))
         | sigexpw       ((sigexpw))
 
+sigexps : sigexp         ([sigexp])
+        | sigexp sigexps (sigexp :: sigexps)
+
 sigexpand
         : sigexpwand    (sigexpwand)
         | sigexpp AND   (({left=sigexppleft,right=sigexppright},sigexpp))
@@ -1370,6 +1374,8 @@ specitemp
                         (StructureDesc(strdesc))
         | INCLUDE sigexp
                         (Include(sigexp))
+        | INCLUDE sigexps
+                        (Includes(sigexps))
         | SHARING TYPE longtycons_equals
                         (SharingType(longtycons_equals))
         | SHARING longstrids_equals
