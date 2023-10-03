@@ -4,7 +4,7 @@
 structure SyntaxDep :> SYNTAXDEP =
 struct
 
-open SmallSyntax 
+open SmallSyntax
 
 (*----------------------------------------------------------------------*)
 (* Sets of entity references						*)
@@ -12,7 +12,7 @@ open SmallSyntax
 infixr 5 ++
 val op++ = Entity.Set.union
 val empty = Entity.Set.empty
-fun singleSigid sigid = Entity.Set.singleton (Entity.Sig, sigid)
+fun singleSigid sigid = Entity.Set.singleton (Entity.Sig, sigid, Level.topLevel ())
 
 (*----------------------------------------------------------------------*)
 (* Where did a particular environment come from?			*)
@@ -30,7 +30,7 @@ datatype Env = Env of (Source*Env) Symbol.Map.map
 (*----------------------------------------------------------------------*)
 (* The information obtained from dependency analysis; see signature.	*)
 (*----------------------------------------------------------------------*)
-type Info = 
+type Info =
 {
   order : Entity.Ref list,
   deps : Entity.Set.set Entity.Map.map,
@@ -68,21 +68,21 @@ let
 fun convert longid (PackageManager.Package { classes, packages }) =
   Env(
     Symbol.Map.unionWith #2
-    (Symbol.Map.mapi (fn (id, ref p) => 
+    (Symbol.Map.mapi (fn (id, ref p) =>
        (Package (longid @ [id]), convert (longid @ [id]) p)) packages,
-     Symbol.Map.mapi (fn (id, _) => 
+     Symbol.Map.mapi (fn (id, _) =>
        (Class (longid @ [id]), emptyEnv)) classes))
 *)
 fun convert longid (PackageManager.Package { classes, packages }) =
-  Env(let val packageEnv = 
-      Symbol.Map.mapi (fn (id, ref p) => 
-	(Package (longid @ [id]), convert (longid @ [id]) p)) 
+  Env(let val packageEnv =
+      Symbol.Map.mapi (fn (id, ref p) =>
+	(Package (longid @ [id]), convert (longid @ [id]) p))
       packages
-      val classEnv  = 
-      Symbol.Map.mapi (fn (id, _) => 
-	(Class (longid @ [id]), 
-	 case Symbol.Map.find(packageEnv,id) of 
-	     SOME (_,env) => env 
+      val classEnv  =
+      Symbol.Map.mapi (fn (id, _) =>
+	(Class (longid @ [id]),
+	 case Symbol.Map.find(packageEnv,id) of
+	     SOME (_,env) => env
 	   | NONE => emptyEnv ))
 	 classes
   in
@@ -98,12 +98,12 @@ val initialEnv = convert [] (PackageManager.getTop ())
 (* The initial environment for checking signatures includes Int, Real,  *)
 (* etc									*)
 (*----------------------------------------------------------------------*)
-val initialEnvForSig = 
+val initialEnvForSig =
   extend (initialEnv,
-  Env 
-  (    
-    Symbol.Map.foldli 
-    (fn (strid, _, env) => 
+  Env
+  (
+    Symbol.Map.foldli
+    (fn (strid, _, env) =>
       Symbol.Map.insert(env, strid, (SourceStruct,emptyEnv)))
     Symbol.Map.empty
     (TopEnv.initialSE ())
@@ -116,7 +116,7 @@ type TopInfo =
   sourcemap : SourceMap.sourcemap option,
   errors : Error.Error list
 }
-  
+
 val order = ref ([] : Entity.Ref list)
 val deps = ref (Entity.Map.empty : TopInfo Entity.Map.map)
 val classes = ref Longid.Set.empty
@@ -132,6 +132,7 @@ fun lookup (Env e, id) = Symbol.Map.find(e, id)
 (* Look up an entity reference in the top-level environment.		*)
 (* Note that structures and packages share the same entities.           *)
 (*----------------------------------------------------------------------*)
+(* TODO(DarinM223): handle levels *)
 fun lookupTop entity = Entity.Map.find(!deps, entity)
 
 (*----------------------------------------------------------------------*)
@@ -140,30 +141,30 @@ fun lookupTop entity = Entity.Map.find(!deps, entity)
 fun addTop (entity, E, entities) =
     (order := entity :: !order;
     case Entity.Map.find(!deps, entity) of
-      NONE => 
-      deps := Entity.Map.insert(!deps, entity, 
+      NONE =>
+      deps := Entity.Map.insert(!deps, entity,
         { E = E, entities = entities, sourcemap = NONE, errors = [] })
 
     | SOME { errors, ... } =>
-      deps := Entity.Map.insert(!deps, entity, 
+      deps := Entity.Map.insert(!deps, entity,
         { E = E, entities = entities, sourcemap = NONE, errors = errors }))
 
 (*----------------------------------------------------------------------*)
 (* There's been a parsing error for this entity.			*)
 (*----------------------------------------------------------------------*)
-fun parseError entity = 
+fun parseError entity =
   (badParse := true;
 (*
    print (" " ^ EntityOps.description entity);
 *)
-   deps := Entity.Map.insert(!deps, entity, 
+   deps := Entity.Map.insert(!deps, entity,
      { E = emptyEnv, entities = empty, sourcemap = NONE, errors = [] }))
 
 val loc = {left=0,right=0}
 fun depError (NONE, message) =
     (PrintManager.print message; badParse := true)
 
-  | depError (SOME entity, message) = 
+  | depError (SOME entity, message) =
     (case Entity.Map.find(!deps, entity) of
       SOME { entities, E, sourcemap, errors } =>
       (badParse := true;
@@ -172,9 +173,9 @@ fun depError (NONE, message) =
           errors = Error.error(loc, message) :: errors }))
 
     | NONE =>
-      (badParse := true;  
+      (badParse := true;
       deps := Entity.Map.insert(!deps, entity,
-        { E = emptyEnv, entities = empty, sourcemap = NONE, 
+        { E = emptyEnv, entities = empty, sourcemap = NONE,
           errors = [Error.error(loc, message)] })))
 
 fun printErrors () =
@@ -183,7 +184,7 @@ fun printErrors () =
 Entity.Map.appi
   (fn (entity, { sourcemap, errors, ... }) =>
     case (errors, sourcemap) of
-      (_::_, SOME sm) => 
+      (_::_, SOME sm) =>
       (PrintManager.print (EntityOps.description entity ^ ":");
        PrintManager.printErrors (sm, errors))
 
@@ -197,7 +198,7 @@ let
   fun find acc [] = ()
     | find acc (entity'::rest) =
       if EntityOps.eq(entity,entity')
-      then 
+      then
       (
         PrintManager.println (
         EntityOps.description entity ^ " is in a circular definition with " ^
@@ -212,7 +213,7 @@ end
 (*----------------------------------------------------------------------*)
 (* Analyse a single declaration.					*)
 (*----------------------------------------------------------------------*)
-fun analyseDecItem (env, pending, sourcemap) (decitem : DecItem) = 
+fun analyseDecItem (env, pending, sourcemap) (decitem : DecItem) =
 case decitem of
   Local(dec1, dec2) =>
   let
@@ -224,7 +225,7 @@ case decitem of
 
 | Structure bindings =>
   foldl (fn ((strid, strexp), (finalenv, refs)) =>
-    let 
+    let
       val (strenv, strrefs) = analyseStrExp (env, pending, sourcemap) strexp
     in
       (add(finalenv, strid, (SourceStruct,strenv)), refs ++ strrefs)
@@ -233,13 +234,13 @@ case decitem of
 | Open longids =>
   let val (_,env,refs) = foldl
     (fn (longid, (env, envresult, refs)) =>
-    let 
+    let
       val (idenv, idrefs) = analyseLongid (env, pending, sourcemap) longid
     in
       (extend (env, idenv), extend (envresult, idenv), refs ++ idrefs)
     end) (env, emptyEnv, empty) longids
   in
-    (env, refs)  
+    (env, refs)
   end
 
 | Mention mention =>
@@ -250,7 +251,7 @@ case decitem of
 (* Analyse a sequence of declarations.					*)
 (*----------------------------------------------------------------------*)
 and analyseDec (env, pending, sourcemap) [] = (emptyEnv, empty)
-  | analyseDec (env, pending, sourcemap) (decitem::dec) = 
+  | analyseDec (env, pending, sourcemap) (decitem::dec) =
     let
       val (env1, refs1) = analyseDecItem (env, pending, sourcemap) decitem
       val (env2, refs2) = analyseDec (extend (env, env1), pending, sourcemap) dec
@@ -279,35 +280,35 @@ case strexp of
 | FunApp(funid, strexp) =>
   let
     val (argenv, argrefs) = analyseStrExp args strexp
-    val entity = (Entity.Fun, funid)
+    val entity = (Entity.Fun, funid, Level.topLevel ())
     val x = lookupTop entity
   in
     case x of
-      SOME { E = resultenv, entities = refs, ... } => 
-      (* Union in the functor's own references because we macro expand *) 
+      SOME { E = resultenv, entities = refs, ... } =>
+      (* Union in the functor's own references because we macro expand *)
       (resultenv, Entity.Set.union(refs, Entity.Set.add(argrefs, entity)))
 
     | NONE =>
       (testCycle (entity, pending, sourcemap);
         case DepManager.dep entity of
-          DepManager.Success (Local([openitem as Open _],[Functor [(_, spec, strexp)]]), _) => 
-          let 
+          DepManager.Success (Local([openitem as Open _],[Functor [(_, spec, strexp)]]), _) =>
+          let
                val (env1, refs1) = analyseDecItem (initialEnv, entity::pending, sourcemap) openitem
-	       val (env, resultrefs) = analyseFunExp 
+	       val (env, resultrefs) = analyseFunExp
                     (extend(initialEnv,env1), entity::pending, SOME (entity)) (spec,strexp)
           in
             addTop(entity, env, refs1++resultrefs);
-            (env, 
+            (env,
              refs1 ++ resultrefs ++ Entity.Set.add(argrefs, entity))
           end
 
         | DepManager.Success _ =>
           (PrintManager.println ("Expected single functor definition in " ^
             EntityOps.description entity);
-           parseError entity; 
+           parseError entity;
            (emptyEnv, Entity.Set.add(argrefs, entity)))
-        
-        | DepManager.ParseError => 
+
+        | DepManager.ParseError =>
           (parseError entity; (emptyEnv, Entity.Set.add(argrefs, entity)))
 
         | DepManager.NotFound =>
@@ -329,21 +330,21 @@ case strexp of
 and analyseSigExp (args as (env, pending, sourcemap)) sigexp =
 case sigexp of
   Sigid sigid =>
-  let 
-    val entity = (Entity.Sig, sigid)
+  let
+    val entity = (Entity.Sig, sigid, Level.topLevel ())
     val x = lookupTop entity
   in
     case x of
-      SOME { E = env, entities = imports, ... } => 
+      SOME { E = env, entities = imports, ... } =>
       (env, Entity.Set.singleton entity)
 
     | NONE =>
       (testCycle (entity, pending, sourcemap);
         case DepManager.dep entity of
-          DepManager.Success (Local([openitem as Open _],[Signature [(_,sigexp)]]), _) => 
-          let 
+          DepManager.Success (Local([openitem as Open _],[Signature [(_,sigexp)]]), _) =>
+          let
             val (env1, refs1) = analyseDecItem (initialEnvForSig, entity::pending, sourcemap) openitem
-            val (env, refs) = analyseSigExp 
+            val (env, refs) = analyseSigExp
               (extend(initialEnvForSig,env1), entity::pending, SOME (entity)) sigexp
           in
             addTop(entity, env, refs1++refs);
@@ -353,14 +354,14 @@ case sigexp of
         | DepManager.Success _ =>
           (PrintManager.println ("Expected single signature definition in " ^
             EntityOps.description entity);
-           parseError entity; 
+           parseError entity;
            (emptyEnv, Entity.Set.singleton entity))
-       
-        | DepManager.ParseError => 
-          (parseError entity; 
+
+        | DepManager.ParseError =>
+          (parseError entity;
           (emptyEnv, Entity.Set.singleton entity))
 
-        | DepManager.NotFound => 
+        | DepManager.NotFound =>
           (emptyEnv, Entity.Set.singleton entity)
       )
   end
@@ -381,9 +382,9 @@ case sigexp of
 (*----------------------------------------------------------------------*)
 and analyseFunExp (env, pending, sourcemap) (spec, strexp) =
   let
-    val (env1, refs1) = 
+    val (env1, refs1) =
       analyseSpec (env, pending, sourcemap) spec
-    val (env2, refs2) = 
+    val (env2, refs2) =
       analyseStrExp (extend (env, env1), pending, sourcemap) strexp
   in
     (env2, refs1 ++ refs2)
@@ -392,14 +393,14 @@ and analyseFunExp (env, pending, sourcemap) (spec, strexp) =
 (*----------------------------------------------------------------------*)
 (* Analyse a sequence of specifications.				*)
 (*----------------------------------------------------------------------*)
-and analyseSpec (env, pending, sourcemap) [] = 
+and analyseSpec (env, pending, sourcemap) [] =
     (emptyEnv, empty)
 
-  | analyseSpec (env, pending, sourcemap) (specitem::spec) = 
+  | analyseSpec (env, pending, sourcemap) (specitem::spec) =
     let
-      val (env1, refs1) = 
+      val (env1, refs1) =
         analyseSpecItem (env, pending, sourcemap) specitem
-      val (env2, refs2) = 
+      val (env2, refs2) =
         analyseSpec (extend (env, env1), pending, sourcemap) spec
     in
       (extend(env1, env2), refs1 ++ refs2)
@@ -412,18 +413,18 @@ and analyseSpecItem (args as (env, pending, sourcemap)) specitem =
 case specitem of
   StructureDesc bindings =>
   foldl (fn ((strid, sigexp), (finalenv, refs)) =>
-    let 
+    let
       val (sigenv, sigrefs) = analyseSigExp (env, pending, sourcemap) sigexp
     in
       (add(finalenv, strid, (SourceStruct,sigenv)), refs ++ sigrefs)
-    end) (emptyEnv, empty) bindings 
+    end) (emptyEnv, empty) bindings
 
 | Include sigexp =>
   analyseSigExp args sigexp
 
 | SpecMention mention =>
   (emptyEnv, analyseMention args mention)
-  
+
 (*----------------------------------------------------------------------*)
 (* Analyse a single long identifier.					*)
 (* Resolution is as follows:                                            *)
@@ -432,67 +433,67 @@ case specitem of
 (*       EITHER a top-level structure strid must exist;                 *)
 (*       OR     a top-level package strid must exist.                   *)
 (*----------------------------------------------------------------------*)
-and analyseLongid (env, pending, sourcemap) (longstrid as id::ids) = 
+and analyseLongid (env, pending, sourcemap) (longstrid as id::ids) =
 let
   (* Analyse a longid that starts with a non-top-level identifier *)
   fun analyseLocal result [] = result
     | analyseLocal ((_,env), refs) (id::ids) =
       case lookup(env, id) of
         (* This could be flagged as a missing substructure error *)
-        NONE => 
+        NONE =>
         ((SourceStruct, emptyEnv), refs)
 
-      | SOME pair => 
+      | SOME pair =>
         analyseLocal (pair, refs) ids
 
-  val entity = (Entity.Str, id)
+  val entity = (Entity.Str, id, Level.topLevel ())
 
-  val ((source,env), refs) = 
+  val ((source,env), refs) =
   case lookup(env, id) of
-    SOME pair => 
+    SOME pair =>
     analyseLocal (pair, empty) ids
 
-  | NONE => 
+  | NONE =>
     case lookupTop entity of
       SOME { E = env, entities = refs, ... } =>
       analyseLocal ((SourceStruct,env), Entity.Set.singleton entity) ids
 
-    | NONE =>      
+    | NONE =>
       (testCycle (entity, pending, sourcemap);
         case DepManager.dep entity of
-          DepManager.Success (Structure [(_,strexp)], _) => 
-          let 
-            val (env, refs) = analyseStrExp 
+          DepManager.Success (Structure [(_,strexp)], _) =>
+          let
+            val (env, refs) = analyseStrExp
               (initialEnv, entity::pending, SOME (entity)) strexp
           in
             addTop(entity, env, refs);
-            analyseLocal 
+            analyseLocal
               ((SourceStruct,env), Entity.Set.singleton entity) ids
           end
 
         | DepManager.Success _ =>
           (PrintManager.println ("Expected single structure definition in " ^
             EntityOps.description entity);
-           parseError entity; 
+           parseError entity;
            ((SourceStruct, emptyEnv), Entity.Set.singleton entity))
-       
+
         | DepManager.ParseError =>
-          (parseError entity; 
+          (parseError entity;
           ((SourceStruct, emptyEnv), Entity.Set.singleton entity))
 
-        | DepManager.NotFound => 
+        | DepManager.NotFound =>
           ((SourceStruct, emptyEnv), Entity.Set.singleton entity)
      )
 in
   (case source of
     Class longid => (classes := Longid.Set.add(!classes, longid))
-  | Package longid => (packages := Longid.Set.add(!packages, longid)) 
+  | Package longid => (packages := Longid.Set.add(!packages, longid))
   | SourceStruct => ());
   (env, refs)
 end
 
 and analyseMention args longids =
-  Longid.Set.foldl 
+  Longid.Set.foldl
     (fn (mention, refs) =>
       let val (_, refs') = analyseLongid args mention
       in refs ++ refs' end) empty longids
@@ -500,12 +501,12 @@ and analyseMention args longids =
 
 in
   (map (fn id => analyseLongid (initialEnv, [], NONE) [Id.fromString id]) ids;
-  if !badParse 
+  if !badParse
   then (printErrors (); NONE)
-  else SOME 
-  { 
-    deps = Entity.Map.map #entities (!deps), 
-    order = !order, 
+  else SOME
+  {
+    deps = Entity.Map.map #entities (!deps),
+    order = !order,
     classes = !classes,
     packages = !packages
   }) handle Cycle => (printErrors (); NONE)
@@ -518,6 +519,6 @@ fun sync strids =
  PrintManager.process ("Analysing dependencies", true)
  (fn () => analyse strids)
  else NONE
-        
+
 end
 

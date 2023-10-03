@@ -1,14 +1,14 @@
 structure Make :> MAKE =
 struct
 
-  val opts = ref 
-    ["linkpresimp", "simp1", "funscope", 
-     "arity1", "simp2", 
-     "eq", "simp3", 
-     "mono", "simp4", 
-     "units", "simp5", 
+  val opts = ref
+    ["linkpresimp", "simp1", "funscope",
+     "arity1", "simp2",
+     "eq", "simp3",
+     "mono", "simp4",
+     "units", "simp5",
      "flat", "simp6",
-     "arity2", "tailrec", "simp7", 
+     "arity2", "tailrec", "simp7",
      "inline", "funscope", "simp8", "floathoist", "case", "deadargs", "tailrec2", "lastsimp"]
 
   val listFiles = Controls.add false "env.saveScript"
@@ -18,9 +18,9 @@ struct
 (*......................................................................*)
 (* Merge all modules into one huge term and simplify it.                *)
 (*......................................................................*)
-      val (e,supply,classnames) = 
+      val (e,supply,classnames) =
         PrintManager.process ("Linking modules", true)
-          (fn () => Link.link ((Entity.Str, Id.fromString "_export")::entities,
+          (fn () => Link.link ((Entity.Str, Id.fromString "_export", Level.topLevel ())::entities,
             classnames))
     in
       PrintManager.process ("Compiling whole program", true)
@@ -29,23 +29,23 @@ struct
 
         (* enable lineBeta rewrite iff debug flag is false *)
 
-        val debug = CompileAll.debug 
+        val debug = CompileAll.debug
 
         val lineBeta = Simplify.lineBeta
-        
+
         val savedLineBeta = Controls.get(lineBeta)
 
         val _ = Controls.set(lineBeta,not(Controls.get debug))
 
         val _ = MILTy.init{debug=Controls.get debug}
-        
+
         (* Apply a succession of transformations *)
         val (e,supply) = Opts.apply (!opts) Var.Map.empty (e,supply)
 
         (* Closure-convert the result *)
         val convresult = PrintManager.process ("Closure converting", false)
           (fn () => ClosConv.conv e)
-        
+
         (* restore lineBeta flag *)
         val _ = Controls.set(lineBeta,savedLineBeta)
 
@@ -55,7 +55,7 @@ struct
       then
         PrintManager.process ("Generating code", false)
           (fn () => CompileAll.compile (projname,classnames) convresult)
-      else 
+      else
       (PrintManager.println "Error: exception always raised at top-level.";
       false)
     end)
@@ -64,25 +64,25 @@ struct
   val exports = ref ([] : (string list * string) list)
   val mainclass = ref (NONE : string option)
 
-  fun getDeps () = 
+  fun getDeps () =
   case !exports of
     es as ((rootstrid::_,_)::_) =>
     (case SyntaxDep.sync (map (hd o #1) es) of
-      NONE => 
+      NONE =>
       NONE
 
     | SOME info =>
       SOME (rootstrid, info))
 
-  | _ => 
+  | _ =>
     (PrintManager.println "Exports not set."; NONE)
 
-  fun make clean = 
+  fun make clean =
   (let
-       fun finish success = 
+       fun finish success =
        (
-         Debug.finish (); 
-         if not success then TargetManager.abort () 
+         Debug.finish ();
+         if not success then TargetManager.abort ()
          else PrintManager.println("Compilation succeeded: output in " ^
                                    #out (valOf(TargetManager.getInfo())));
          success
@@ -97,17 +97,17 @@ struct
     case getDeps () of
       NONE => (BuildManager.serialize NONE; (*crusso: persist paths to disk for vs *)
                finish false)
-    | depsOpt as 
+    | depsOpt as
       SOME (rootstrid, info as { order, ... }) =>
      (BuildManager.serialize (SOME info); (*crusso: persist paths to disk for vs *)
       case SepComp.make info of
         SepComp.Failure => finish false
       | result =>
         case ProcessExports.process (!exports) of
-          NONE => 
+          NONE =>
           finish false
         | SOME (tynames, mainclassopt) =>
-          let           
+          let
             val _ = mainclass := mainclassopt
             val _ = TargetManager.setDefaultName rootstrid
             val targetExists = case TargetManager.getInfo() of
@@ -116,29 +116,29 @@ struct
             val done = case result of
                            SepComp.NoChange =>
                            if targetExists andalso not(clean)
-                           then true 
+                           then true
                            else complete(rootstrid,order,tynames)
                          | success => complete (rootstrid, order, tynames)
-          in            
-            if Controls.get PrintManager.showTime 
+          in
+            if Controls.get PrintManager.showTime
             then (PrintManager.printTime "\nTotal compilation time: " timer)
             else ();
-            if Controls.get listFiles 
-            then 
+            if Controls.get listFiles
+            then
             let
               (* Only save non-Basis files by testing the number of pervasives structures *)
               (* dragged in (yuck) *)
-              val fileFor = (fn SOME ((s,_),[_,_]) => SOME s | _ => NONE) o 
+              val fileFor = (fn SOME ((s,_),[_,_]) => SOME s | _ => NONE) o
                             SourceManager.fileRefFor
               val f = TextIO.openOut ("files")
-              val _ = TextIO.output (f, 
-                Pretty.simpleVec "\n" 
+              val _ = TextIO.output (f,
+                Pretty.simpleVec "\n"
                   (fn s => "use \"" ^ CharVector.map (fn #"\\" => #"/" | c => c) s ^ "\";")
                 (rev (List.mapPartial fileFor order)))
               val _ = TextIO.closeOut f
             in
               ()
-            end 
+            end
             else ();
             finish done
           end)
@@ -158,22 +158,22 @@ let
   fun gather [] = SOME []
     | gather ((classty,classname)::rest) =
       (case String.fields (fn c => c = #".") classty of
-           longid as [strid] => 
+           longid as [strid] =>
                (case gather rest of
                     NONE => NONE
-                  | SOME result => 
+                  | SOME result =>
                         SOME ((longid,getOpt(classname,strid))::result))
          | _ => NONE (*@TODO: support |longid|>1 *))
 
   fun removeDupLongids ([], result) = rev result
-    | removeDupLongids ((longid,name)::rest, result) = 
+    | removeDupLongids ((longid,name)::rest, result) =
       if List.exists (fn (longid',_) => longid=longid') result
       then removeDupLongids (rest, result)
       else removeDupLongids (rest, (longid,name)::result)
 in
   case gather args of
     NONE => NONE
-  | SOME [] => 
+  | SOME [] =>
         (PrintManager.println("exports cleared");
          SOME [])
   | SOME newexports =>     (* add exports *)
@@ -183,7 +183,7 @@ in
       case Dups.duplicateStrings (map #2 exports) of
         [] => SOME exports
       | ds =>
-        (PrintManager.println("Duplicate class names: " ^ Pretty.simpleVec "," 
+        (PrintManager.println("Duplicate class names: " ^ Pretty.simpleVec ","
          Gen.identity ds); NONE)
     end
 end
@@ -199,7 +199,7 @@ val _ = Commands.add "export"
 {
   act = fn root => setExports,
   query = fn () => "export:" ^ Pretty.simpleVec "," (fn (longid,classname) =>
-          Longid.toString (map Id.fromString longid) ^ "=" ^ classname) 
+          Longid.toString (map Id.fromString longid) ^ "=" ^ classname)
           (!exports),
   syntax = "<strid>[=<classname>],...,<strid>[=<classname>]",
   help = "export <strid>[=<classname>],...,<strid>[=classname>]\n\
@@ -213,9 +213,9 @@ fun makeAction clean = if make clean then OS.Process.success else OS.Process.fai
 
 val _ = Commands.add "make"
 {
-  act = fn root => 
+  act = fn root =>
         fn [] => makeAction false
-         | _ => 
+         | _ =>
   (PrintManager.println ("make: unexpected parameters"); OS.Process.failure),
   query = fn () => "",
   syntax = "",
@@ -225,9 +225,9 @@ val _ = Commands.add "make"
 
 val _ = Commands.add "remake"
 {
-  act = fn root => 
+  act = fn root =>
         fn [] => makeAction true
-         | _ => 
+         | _ =>
   (PrintManager.println ("remake: unexpected parameters"); OS.Process.failure),
   query = fn () => "",
   syntax = "",

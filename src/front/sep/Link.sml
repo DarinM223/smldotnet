@@ -4,14 +4,14 @@
 structure Link :> LINK =
 struct
 
-local 
+local
   open UnitTypes
   open MILTerm
   structure Map = Symbol.Map
 in
 
-val showLinkOrder = Controls.add false "link.showOrder" 
-val showLinkTyMap = Controls.add false "link.showTyMap" 
+val showLinkOrder = Controls.add false "link.showOrder"
+val showLinkTyMap = Controls.add false "link.showTyMap"
 
 (*----------------------------------------------------------------------*)
 (* Dump the type name map						*)
@@ -25,6 +25,7 @@ fun tymapToString tymap =
 (*----------------------------------------------------------------------*)
 (* Gather up concrete type definitions					*)
 (*----------------------------------------------------------------------*)
+(* TODO(DarinM223): handle levels? *)
 fun makeTyMap entities =
 let
   val entities = rev entities
@@ -33,10 +34,10 @@ let
     | add (entity::entities, tymap) =
 
       case (entity, Entity.Map.find(!UnitManager.cache, entity)) of
-        ((Entity.Str, strid), SOME (Str {tynameTys = TNE, ...}, _)) =>
+        ((Entity.Str, strid, level), SOME (Str {tynameTys = TNE, ...}, _)) =>
         let val f = MILTy.replace tymap
         in
-          add (entities, 
+          add (entities,
             TyName.Map.foldri (fn (tyname, ty, tymap) =>
               MILTy.Map.insert(tymap, MILTy.tyname tyname, f ty)) tymap TNE)
         end
@@ -52,8 +53,8 @@ end
 (* rename free variables in term using map.                             *)
 (*----------------------------------------------------------------------*)
 fun rename (m,t,offset,tyvaroffset) e =
-let 
-  fun r x = 
+let
+  fun r x =
     case Var.Map.find(m,x) of
       NONE => Var.fromInt(Var.index x + offset)
     | SOME x' => x'
@@ -61,7 +62,7 @@ let
   fun rb (x,s) = (r x, s)
 
   fun rk (v,k) =
-  (Var.fromInt (Var.index v + tyvaroffset), 
+  (Var.fromInt (Var.index v + tyvaroffset),
    case k of
     MILTy.Bound ty => MILTy.Bound (t ty)
   | other => other)
@@ -87,16 +88,16 @@ let
   | Fold (v, ty) => Fold(rv v, t ty)
   | Unfold v => Unfold(rv v)
 
-  and rtabs (typedvars, e) = 
+  and rtabs (typedvars, e) =
     (map (fn (x,ty) => (rb x, t ty)) typedvars, re e)
 
   and rabs (xs, e) = (map rb xs, re e)
 
   and re e =
   let
-    fun rc (v, cases, eopt, cty) =  
+    fun rc (v, cases, eopt, cty) =
       (rv v, map (fn (i, abs) => (i, rabs abs)) cases, Option.map re eopt, rct cty)
-    fun rtc (v, cases, eopt, cty) =  
+    fun rtc (v, cases, eopt, cty) =
       (rv v, map (fn (i, abs) => (t i, rabs abs)) cases, Option.map re eopt, rct cty)
   in
   case e of
@@ -109,21 +110,21 @@ let
   | TypeCase cases => TypeCase(rtc cases)
   | Throw(v, cty, loc) => Throw(rv v, rct cty, loc)
   | TryLet(e, handlers, abs) => TryLet(re e, map rtabs handlers, rtabs abs)
-  | LetFun(tyvars, kind, def, e) => 
-    LetFun(map rk tyvars, kind, 
+  | LetFun(tyvars, kind, def, e) =>
+    LetFun(map rk tyvars, kind,
       case def of
         RecFun recbinds =>
-        RecFun (map (fn (f,g,tabs,cty) => (rb f,rb g,rtabs tabs,rct cty)) 
+        RecFun (map (fn (f,g,tabs,cty) => (rb f,rb g,rtabs tabs,rct cty))
           recbinds)
       | Fun (f, tabs) =>
         Fun (rb f, rtabs tabs), re e)
-  | LetClass(name,info,fields,methods,e) => 
+  | LetClass(name,info,fields,methods,e) =>
      LetClass(name,info,
       map (fn (n,ms,ty,c) => (n,ms,t ty,c)) fields,
-      map (fn (n,atts,ms,tys,tyopt,absopt) => 
-        (n,atts,ms,map t tys,Option.map t tyopt, 
+      map (fn (n,atts,ms,tys,tyopt,absopt) =>
+        (n,atts,ms,map t tys,Option.map t tyopt,
 	 case absopt of NONE => NONE
-          | SOME (f, abs) => SOME (rb f, rabs abs))) methods, 
+          | SOME (f, abs) => SOME (rb f, rabs abs))) methods,
 	 re e)
   | LetVal(x, v, e) => LetVal(rb x, rv v, re e)
   | Encap e => Encap(re e)
@@ -132,16 +133,17 @@ in
   re e
 end
 
-fun link (entities : Entity.Ref list, names) = 
+fun link (entities : Entity.Ref list, names) =
 let
   val _ = PrintManager.dump showLinkOrder (fn prln =>
    prln (Pretty.simpleVec "," EntityOps.toString (rev entities)))
 
   (* Gather up environment information for each SML structure *)
-  val structures = List.mapPartial 
+  (* TODO(DarinM223): handle levels? *)
+  val structures = List.mapPartial
     (fn entity =>
      case (entity, Entity.Map.find(!UnitManager.cache, entity)) of
-      ((Entity.Str, strid), SOME (Str info, _)) => SOME (strid, info)
+      ((Entity.Str, strid, level), SOME (Str info, _)) => SOME (strid, info)
      | _ => NONE) entities
 
   val tymap = makeTyMap entities
@@ -149,8 +151,8 @@ let
   val _ = PrintManager.dump showLinkTyMap (fn prln =>
     prln (tymapToString tymap))
 
-  val names = 
-    map (fn (tyname,s) => 
+  val names =
+    map (fn (tyname,s) =>
       ((case MILTy.Map.find(tymap, MILTy.tyname tyname) of
         SOME ty =>
         (case MILTy.fromTyname ty of
@@ -159,23 +161,23 @@ let
       | NONE => tyname), s)) names
 
   (* Construct variable names for all the structures in the project *)
-  val SE = 
+  val SE =
     ListOps.foldri (fn (i, (strid, _), SE) => Map.insert(SE, strid, Var.fromInt (i+1)))
     Map.empty
     structures
 
-  fun link' result [] = 
+  fun link' result [] =
       result
 
-    | link' (e,supply',tyvarsupply') 
-      ((strid, { tyvarsupply, supply, 
+    | link' (e,supply',tyvarsupply')
+      ((strid, { tyvarsupply, supply,
                  term = (boundvars,term), E, tynameTys, ... }:StrEntry)::
         structures)=
-      let  
+      let
 	val t = MILTy.replaceAndRename (tymap, tyvarsupply')
 
-        val r = 
-          foldr 
+        val r =
+          foldr
           (fn ((x,[strid]),r) => Var.Map.insert(r,x,valOf(Map.find(SE, strid))))
           (Var.Map.insert(Var.Map.empty, Var.dummy, Var.dummy))
           boundvars
@@ -184,8 +186,8 @@ let
         val globalvar = valOf(Symbol.Map.find(SE, strid))
         val ty = TransType.transE tynameTys E
       in
-        link' 
-          (Let(e', ([((globalvar,[strid]),t ty)], e)), 
+        link'
+          (Let(e', ([((globalvar,[strid]),t ty)], e)),
            Var.supplyIndex supply + supply',
            Var.supplyIndex tyvarsupply + tyvarsupply') structures
       end
@@ -194,15 +196,15 @@ let
 
 (*
   (* Put a top-level exception handler round the whole thing *)
-  val (e,supply) = 
+  val (e,supply) =
     if Controls.isOn "exnLocs"
     then
-    let 
+    let
       val (supply', exnvar) = Var.fresh supply
     in
-      (TryLet(e, [([(exnvar, MILTys.topExn)], 
+      (TryLet(e, [([(exnvar, MILTys.topExn)],
         Special((Ext.Invoke, NONE,SOME(Ids.symbol "printStackTrace")),
-          [Coerce(Var exnvar, MILTy.base 
+          [Coerce(Var exnvar, MILTy.base
             (Types.CLASS ClassHandle.throwable))],
           MILTy.cmp(Effect.any, [])))], ([], Triv [])), supply')
     end else (e, supply)

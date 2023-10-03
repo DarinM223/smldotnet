@@ -31,6 +31,10 @@ $/basis.cm
 (*----------------------------------------------------------------------*)
 ../parse/pre/sources.cm
 
+(* TODO(DarinM223): Put this somewhere else *)
+entity/LEVEL.sig
+entity/Level.sml
+
 (*----------------------------------------------------------------------*)
 (* Syntax: checking, error messages                            		*)
 (*----------------------------------------------------------------------*)
@@ -382,8 +386,6 @@ newcomp/RTSymbols.sml
 (*----------------------------------------------------------------------*)
 (* Entities: compilation units						*)
 (*----------------------------------------------------------------------*)
-entity/LEVEL.sig
-entity/Level.sml
 entity/Entity.sml
 entity/EntityOps.sml
 entity/ENTITYOPS.sig

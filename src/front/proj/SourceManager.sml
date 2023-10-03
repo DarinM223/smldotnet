@@ -35,7 +35,7 @@ case kind of
 (*----------------------------------------------------------------------*)
 (* Entity translation       						*)
 (*----------------------------------------------------------------------*)
-val translation = ref (Entity.Map.empty : string Entity.Map.map) 
+val translation = ref (Entity.Map.empty : string Entity.Map.map)
 
 (*----------------------------------------------------------------------*)
 (* Entries in paths are of two kinds:					*)
@@ -43,11 +43,11 @@ val translation = ref (Entity.Map.empty : string Entity.Map.map)
 (*   files, for which the AST and timestamp are recorded.		*)
 (*@FUTURE: don't store the whole AST, just the list of entities.	*)
 (*----------------------------------------------------------------------*)
-datatype PathInfo = 
+datatype PathInfo =
   Dir of Time.time StringMap.map
 | File of Syntax.Dec * Time.time
 
-type PathEntry = 
+type PathEntry =
   { name : string, strids : string list, info : PathInfo }
 
 (*----------------------------------------------------------------------*)
@@ -64,7 +64,7 @@ val absfileinfo = ref (StringMap.empty : Time.time StringMap.map)
 fun getStampsForPath (path, description) =
 let
 
-fun listDir ([], result) = 
+fun listDir ([], result) =
     SOME (rev result)
 
   | listDir ((name,strids)::names, result) =
@@ -72,39 +72,39 @@ fun listDir ([], result) =
     then
       (* Is it a directory? *)
       if OS.FileSys.isDir name
-      then   
+      then
       let
         val dirstream = OS.FileSys.openDir name
         fun make result =
           case OS.FileSys.readDir dirstream of
-            NONE => 
+            NONE =>
             result
 
-          | SOME s => 
+          | SOME s =>
             let
               val fname = OS.Path.joinDirFile { dir = name, file = s }
             in
-              if not (OS.FileSys.access(fname, [])) 
+              if not (OS.FileSys.access(fname, []))
 	      orelse OS.FileSys.isDir fname
               then make result
               else make (StringMap.insert(result, s, FileOps.getTime fname))
             end
 
-        val d = (make StringMap.empty) handle e => 
+        val d = (make StringMap.empty) handle e =>
                 (OS.FileSys.closeDir dirstream; raise e)
       in
         OS.FileSys.closeDir dirstream;
         listDir (names, { name=name, strids=strids, info=Dir d } :: result)
-      end    
+      end
 
       (* It's not a directory; parse whole file *)
-      else 
+      else
       let
         val time = FileOps.getTime name
       in
         case ParseManager.parse (name, time) of
           ParseManager.Success (dec, sourcemap) =>
-          listDir (names,  
+          listDir (names,
             { name=name, strids=strids, info=File(dec,time) } :: result)
 
         | _ =>
@@ -147,14 +147,14 @@ fun sync () =
         (basisdirinfo := b;
         case getStampsForPath (case !projPath of [] => [(OS.FileSys.getDir(), preOpenedStructures)] | p => p, "source") of
           NONE => false
-        | SOME p => 
+        | SOME p =>
           (projdirinfo := p; true))))
-    handle 
-      OS.SysErr(s,_) => 
+    handle
+      OS.SysErr(s,_) =>
       (PrintManager.println s; false)
 
     | IO.Io { name, function, cause } =>
-      (PrintManager.println (exnMessage cause ^ " in " ^ name); 
+      (PrintManager.println (exnMessage cause ^ " in " ^ name);
        false)
   )
 
@@ -165,11 +165,11 @@ fun find entity [] filename = NONE
   | find entity ({name,info,strids}::dirs) filename =
     case info of
       Dir times =>
-      let           
+      let
          val fullname = OS.Path.joinDirFile {dir = name,file = filename}
       in
         case StringMap.find(times, filename) of
-          NONE => 
+          NONE =>
           (SOME ((fullname, OS.FileSys.modTime fullname), strids)
           handle OS.SysErr _ => find entity dirs filename)
 
@@ -181,12 +181,12 @@ fun find entity [] filename = NONE
       case SyntaxCheck.find (dec, entity) of
         NONE => find entity dirs filename
       | SOME _ => SOME ((name, time), strids)
-      
+
 
 (*----------------------------------------------------------------------*)
 (* Find a file for this entity reference.       			*)
 (*----------------------------------------------------------------------*)
-fun fileRefFor (entity as (etype, id)) =
+fun fileRefFor (entity as (etype, id, level)) =
   (*..................................................................*)
   (* Apply the translation to get a single filename or add the        *)
   (* appropriate extensions to the entity name given.                 *)
@@ -194,58 +194,58 @@ fun fileRefFor (entity as (etype, id)) =
   case Entity.Map.find(!translation, entity) of
 
     (* It's not in the map so search for it on the path *)
-    NONE => 
-    let 
-      val filename = OS.Path.joinBaseExt 
+    NONE =>
+    let
+      val filename = OS.Path.joinBaseExt
         {base = Id.toString id, ext = SOME (typeToExt etype) }
     in
       case find entity (!basisdirinfo @ !projdirinfo) filename of
         SOME (result, strids) =>
-        SOME (Entity.makeFileRef result, 
+        SOME (Entity.makeFileRef result,
           map (ListOps.singleton o Id.fromString) strids)
 
-      | NONE => 
+      | NONE =>
         NONE
     end
 
-  | SOME name => 
+  | SOME name =>
     case StringMap.find(!absfileinfo, name) of
       NONE => NONE
-    | SOME time => 
+    | SOME time =>
         let val {dir,...} = OS.Path.splitDirFile(name)
             val dir = String.map Char.toLower (OS.Path.mkCanonical dir)
 	    (* determine preopened structures from presence on basis path *)
             (*@HACK: we need to normalise the paths...*)
-	    val preOpenedStrs =  List.foldr 
-                             (fn ((basisdir,opened),preopened) => 
-                                if (String.map Char.toLower (OS.Path.mkCanonical(basisdir))) =  
+	    val preOpenedStrs =  List.foldr
+                             (fn ((basisdir,opened),preopened) =>
+                                if (String.map Char.toLower (OS.Path.mkCanonical(basisdir))) =
                                    dir
 	                        then opened
                                 else preopened)
 	                    preOpenedStructures  (* the default *)
 	                    (!basisPath)
         in
-		SOME (Entity.makeFileRef (name, time),      
+		SOME (Entity.makeFileRef (name, time),
 	  	   map (ListOps.singleton o Id.fromString) preOpenedStrs)
 
         end
- 
 
 
-fun sourcePath root [] = 
-    (projPath := []; 
-     PrintManager.println "Source path cleared"; 
+
+fun sourcePath root [] =
+    (projPath := [];
+     PrintManager.println "Source path cleared";
      OS.Process.success)
 
   | sourcePath root dirs =
 let
   fun addDirs ([], acc, true) = OS.Process.failure
     | addDirs ([], acc, false) =
-      (projPath :=  
+      (projPath :=
         map (fn x => (x, preOpenedStructures)) (rev acc) @ !projPath;
        OS.Process.success)
     | addDirs ((dir,SOME s)::dirs, acc, fail) =
-      (PrintManager.println 
+      (PrintManager.println
        ("invalid argument " ^ dir ^ " = " ^ s ^ " to source command (argument is a binding, should be a directory)");
        OS.Process.failure)
     | addDirs ((dir,NONE)::dirs, acc, fail) =
@@ -269,43 +269,43 @@ val _ = Commands.add "source"
          \source?\n  Query setting"
 }
 
-(* Create a mapper command X that processes the syntax 
+(* Create a mapper command X that processes the syntax
      X <id>=<file>,...,<id>=<file>
      X <id>?
 *)
 fun makeMapper command kind =
 {
   query = fn () =>
-    command ^ ":" ^ Pretty.simpleVec ",\n" 
-     (fn ((kind,id),name) => Id.toString id ^ "=" ^ name) 
-     (Entity.Map.listItemsi 
-       (Entity.Map.filteri (fn ((kind',_),_) => kind=kind') (!translation))),
+    command ^ ":" ^ Pretty.simpleVec ",\n"
+     (fn ((kind,id, level),name) => Id.toString id ^ "=" ^ name)
+     (Entity.Map.listItemsi
+       (Entity.Map.filteri (fn ((kind',_, _),_) => kind=kind') (!translation))),
 
-  act = fn root => 
+  act = fn root =>
   fn [] =>
    (
      PrintManager.println (command ^ ": mapping cleared");
-     translation := Entity.Map.mapPartiali (fn ((kind',_),f) =>
+     translation := Entity.Map.mapPartiali (fn ((kind',_, _),f) =>
        if kind=kind' then NONE else SOME f) (!translation);
      OS.Process.success
    )
- 
+
    | [(id,NONE)] =>
     if String.sub(id, size id - 1) <> #"?"
-    then 
+    then
     (
       PrintManager.println (command ^ ": expected = following " ^ id);
       OS.Process.failure
     )
-    else 
+    else
     let val id = String.extract(id, 0, SOME (size id - 1))
     in
       sync();
-      case fileRefFor (kind,Id.fromString id) of
-        NONE => 
+      case fileRefFor (kind,Id.fromString id, Level.topLevel ()) of
+        NONE =>
         PrintManager.println (command ^ " " ^ id ^ " does not exist")
 
-      | SOME ((filename,time),_) => 
+      | SOME ((filename,time),_) =>
         PrintManager.println (command ^ " " ^ id ^ "=" ^ filename);
 
       OS.Process.success
@@ -313,9 +313,9 @@ fun makeMapper command kind =
 
   | args =>
     let
-      fun processArg ((id,nameopt),(m,success)) = 
+      fun processArg ((id,nameopt),(m,success)) =
       case nameopt of
-        NONE => 
+        NONE =>
         (
           PrintManager.println (command ^ ": expected = or ? following " ^ id);
           (m, false)
@@ -330,22 +330,22 @@ fun makeMapper command kind =
           )
 
         | Result.Success normname =>
-          (Entity.Map.insert(m, (kind,Id.fromString id), normname), success)
+          (Entity.Map.insert(m, (kind,Id.fromString id, Level.topLevel ()), normname), success)
     in
       case foldl processArg (!translation,true) args of
         (_,false) => OS.Process.failure
       | (m,true) => (translation := m; OS.Process.success)
     end,
-  
+
   syntax = "<id>=<file>,...,<id>=<file>",
   help = command ^ " <id>=<file>,...<id>=<file>\n\
-                   \  Extend file mapping for top-level " ^ command ^ "s\n" ^ 
+                   \  Extend file mapping for top-level " ^ command ^ "s\n" ^
          command ^ " <id>?\n\
                    \  Query mapping of particular " ^ command ^ "\n" ^
          command ^ "?  \n\
                    \  Query entire mapping\n" ^
          command ^ "\n\
-                   \  Clear entire mapping" 
+                   \  Clear entire mapping"
 }
 
 val _ = Commands.add "structure" (makeMapper "structure" Entity.Str)

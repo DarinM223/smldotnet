@@ -18,7 +18,7 @@ val opts = ref ["presimp", "arity1", "presimp"]
 val [showSMLTerm, showSMLTypes, showSMLEnv, showModType,
      showImportTypes, showImports, showImportTypeDefs] =
     map (Controls.add false)
-    ["showSMLTerm", "showSMLTypes", "showSMLEnv", 
+    ["showSMLTerm", "showSMLTypes", "showSMLEnv",
      "showModType", "showImportTypes", "showImports", "showImportTypeDefs"]
 
 
@@ -42,44 +42,44 @@ val initialB = EnvOps.BplusE (TopEnv.initialB ()) initialE
 (*----------------------------------------------------------------------*)
 fun doelab (prefix,entity,openedstructures,topbinditem,sourcemap,fileref : Entity.FileRef) =
 let
-  val (imports,(B,strTys,tynameTys)) = 
+  val (imports,(B,strTys,tynameTys)) =
     UnitOps.makeEnv (initialB, deps, prefix, entity)
 
   (* Optionally dump the import list to the log *)
-  val _ = 
+  val _ =
     if Controls.get showImports
     then Debug.print ("\n[" ^ EntityOps.description entity ^ " imports {" ^
     Pretty.simpleVec ", " EntityOps.description
     (List.filter (fn e => Entity.Set.member(imports, e)) prefix)
     ^ "}]")
     else ()
-          
+
   (* Optionally dump the type defs to the log *)
-  val _ = 
+  val _ =
     if Controls.get showImportTypeDefs
-    then Debug.print ("\n[" ^ EntityOps.description entity ^ 
+    then Debug.print ("\n[" ^ EntityOps.description entity ^
       " imports type defs:\n" ^ tynameTysToString tynameTys)
     else ()
 
-  val (result, errors) = 
+  val (result, errors) =
   case topbinditem of
   (*..................................................................*)
   (* Signature elaboration					      *)
   (*..................................................................*)
     (loc,Syntax.Signature [sigbind]) =>
-    let 
-      val (sigdata as (_,sigma), errors) = 
-      PrintManager.process ("Type checking " ^ 
+    let
+      val (sigdata as (_,sigma), errors) =
+      PrintManager.process ("Type checking " ^
         EntityOps.descriptionWithFile (entity, fileref), true)
         (fn () => Elab.infTopSigExp B openedstructures sigbind)
-      
+
       (* Optionally dump the SML environment to the log *)
-      val _ = 
-        if Controls.get showSMLEnv 
+      val _ =
+        if Controls.get showSMLEnv
         then Debug.print ("\nSML env = " ^ EnvOps.EtoString (#2 sigma))
         else ()
-      
-    in 
+
+    in
       if List.exists Error.isSerious errors
       then (NONE, errors)
       else (SOME (Sig sigma), errors)
@@ -91,23 +91,24 @@ let
   | (loc,Syntax.Structure [strbind]) =>
     let
 
-      val ((strDE,psi,E,e), errors) = 
-      PrintManager.process ("Type checking " ^ 
+      val ((strDE,psi,E,e), errors) =
+      PrintManager.process ("Type checking " ^
         EntityOps.descriptionWithFile (entity, fileref), true)
         (fn () => Elab.infTopStrExp B openedstructures strbind)
 
     in
       if List.exists Error.isSerious errors
       then (NONE, errors)
-      else PrintManager.process 
+      else PrintManager.process
       ("Compiling " ^ EntityOps.description entity, true)
       (fn () =>
       let
         (* Construct a map from structure identifiers to (var,ty) pairs *)
+        (* TODO(DarinM223): handle levels? *)
         val (SE, supply) =
-          Entity.Set.foldr (fn (entity, (SE,supply)) => 
+          Entity.Set.foldr (fn (entity, (SE,supply)) =>
             case entity of
-              (Entity.Str, strid) =>
+              (Entity.Str, strid, level) =>
               let val (supply,x) = Var.fresh supply
                   val SOME ty = Symbol.Map.find(strTys, strid)
               in
@@ -119,52 +120,52 @@ let
         val tynameTysDE = TransType.transDE tynameTys strDE
 
         val tynameTys = TyName.Map.unionWith #2 (tynameTys, tynameTysDE)
-        
+
         (* Translate the realisation *)
         val tynameTysPsi = TransType.transRealisation tynameTys psi
 
         val tynameTys = TyName.Map.unionWith #2 (tynameTys, tynameTysPsi)
 
         (* Optionally dump the MIL types of the imported structures *)
-        val _ = 
+        val _ =
           if Controls.get showImportTypes
           then Debug.print ("\n[Imported structures:\n\n" ^
             Pretty.simpleVec "\n\n" (fn (id,(_,ty)) =>
-            Id.toString id ^ " : " ^ MILTy.toString ty) 
+            Id.toString id ^ " : " ^ MILTy.toString ty)
             (Symbol.Map.listItemsi SE) ^ "\n")
           else ()
 
         (* Optionally dump the SML typed term to the log *)
-        val _ = 
-          if Controls.get showSMLTerm 
+        val _ =
+          if Controls.get showSMLTerm
           then Debug.print ("\nSML term = " ^ SMLTermOps.toString e)
           else ()
 
         (* Optionally dump the SML environment to the log *)
-        val _ = 
+        val _ =
           if Controls.get showSMLEnv
           then Debug.print ("\nSML env = " ^ EnvOps.EtoString E)
           else ()
-      
+
         (* Optionally dump the SML datatype environment to the log *)
-        val _ = 
-          if Controls.get showSMLTypes 
+        val _ =
+          if Controls.get showSMLTypes
           then Debug.print ("\nSML types = " ^ SMLTy.DEtoString strDE)
           else ()
 
         (* Optionally dump the SML realisation to the log *)
-        val _ = 
-          if Controls.get showSMLTypes 
-          then Debug.print ("\nSML realisation = " ^ 
+        val _ =
+          if Controls.get showSMLTypes
+          then Debug.print ("\nSML realisation = " ^
             SMLTy.realisationToString psi)
-          else ()     
+          else ()
 
         (* Translate the SML typed term into a MIL computation term *)
         val { term, cty, varsupply, tyvarsupply, errors = errors' } =
           PrintManager.process ("Translating", false)
           (fn () =>
-            Trans.trans 
-            { 
+            Trans.trans
+            {
 	      sourcemap = sourcemap,
               entity = entity,
               strexp = e,
@@ -182,33 +183,33 @@ let
           (* Translate the SML environment into a MIL tuple type *)
           val ty = TransType.transE tynameTys E
 
-	  val _ = 
+	  val _ =
             if Controls.get showModType
             then Debug.print ("\nMIL module type = " ^ MILTy.toString ty)
             else ()
 
           (* Construct a type environment under which to transform the term *)
-          val tyenv = Symbol.Map.foldr (fn ((x, ty), tyenv) =>    
+          val tyenv = Symbol.Map.foldr (fn ((x, ty), tyenv) =>
               Var.Map.insert(tyenv, x, ty)) Var.Map.empty SE
 
           val (term,supply) = Opts.apply (!opts) tyenv (term,varsupply)
-          val boundvars = 
+          val boundvars =
             map (fn (strid,(x,ty))=> (x,[strid])) (Symbol.Map.listItemsi SE)
         in
-          (SOME (Str 
-           { E = E, 
-             supply = supply, 
+          (SOME (Str
+           { E = E,
+             supply = supply,
              tyvarsupply = tyvarsupply,
 	     (*@BUG: *)
-	     (*@TODO: review 
-              crusso: I don't think the interal realisation should be      
+	     (*@TODO: review
+              crusso: I don't think the interal realisation should be
               persisted as part of tynameTysPsi, but separately,
-              otherwise the result of translation is not implementation 
+              otherwise the result of translation is not implementation
               independent, as it needs to be for separate compilation.
               Fortunately, it appears that an entity is consider dirty
               even when its implementation, but not its interface has  changed.
 	      *)
-             tynameTys = TyName.Map.unionWith #2 (tynameTysDE, tynameTysPsi), 
+             tynameTys = TyName.Map.unionWith #2 (tynameTysDE, tynameTysPsi),
              term = (boundvars,term) }),
           errors @ errors')
         end
@@ -219,8 +220,8 @@ let
     let
 
       (* Elaborate the functor *)
-      val (Phi, errors) = 
-      PrintManager.process ("Type checking " ^ 
+      val (Phi, errors) =
+      PrintManager.process ("Type checking " ^
         EntityOps.descriptionWithFile (entity, fileref), true)
         (fn () => Elab.infTopFunExp B openedstructures funbind)
 
@@ -259,7 +260,7 @@ case ParseManager.parse fileref of
 (* Has the environment to which an entity elaborates changed?           *)
 (* If so, then all dependent entities must be recompiled.               *)
 (*----------------------------------------------------------------------*)
-fun infoChanged (Sig (_,E1), Sig(_,E2)) = 
+fun infoChanged (Sig (_,E1), Sig(_,E2)) =
     not (EnvOps.eq (E1, E2))
 
   | infoChanged (Str { E = E1, ... }, Str { E = E2, ... }) =
@@ -271,8 +272,8 @@ fun infoChanged (Sig (_,E1), Sig(_,E2)) =
   | infoChanged _ = true
 
 
-val primStr = (Entity.Str, Id.fromString "Prim")
-val primSig = (Entity.Sig, Id.fromString "PRIM")
+val primStr = (Entity.Str, Id.fromString "Prim", Level.topLevel ())
+val primSig = (Entity.Sig, Id.fromString "PRIM", Level.topLevel ())
 
 (*----------------------------------------------------------------------*)
 (* Type check, translate and transform entities in dependency order	*)
@@ -282,13 +283,13 @@ val primSig = (Entity.Sig, Id.fromString "PRIM")
   crusso: acc to akenn, an entity is wrongly, but soundly, considered dirty even when its implementation, but not its interface has
          changed (see related @BUG above).
 *)
-fun elab (prefix, []) changed = 
+fun elab (prefix, []) changed =
     (if Entity.Set.isEmpty changed then NoChange
      else Success)
   | elab (prefix, entity::entities) changed =
     case SourceManager.fileRefFor entity of
       NONE =>
-      (PrintManager.println ("Cannot find " ^ EntityOps.description entity); 
+      (PrintManager.println ("Cannot find " ^ EntityOps.description entity);
        Failure)
 
     | SOME (fileref, openedstructures) =>
@@ -298,25 +299,25 @@ fun elab (prefix, []) changed =
         SOME oldinfo =>
         let
           (* It will be in the dependency map unless it's a primitive *)
-          val imports = 
+          val imports =
             case Entity.Map.find(deps, entity) of
               SOME imports => imports
             | NONE => Entity.Set.empty
 
-          val skip = Entity.Set.isEmpty (Entity.Set.intersection(changed, 
+          val skip = Entity.Set.isEmpty (Entity.Set.intersection(changed,
             imports))
         in
           if skip then elab (entity::prefix, entities) changed
-          else 
+          else
           case parseAndExtract (entity, fileref) of
             NONE => Failure
           | SOME (topbinditem, sourcemap) =>
             (case doelab (prefix, entity, openedstructures, topbinditem, sourcemap, fileref) of
-              NONE => 
+              NONE =>
               Failure
             | SOME result =>
               (UnitManager.update (entity, SOME fileref, result);
-              elab (entity::prefix, entities) 
+              elab (entity::prefix, entities)
                    (if infoChanged (oldinfo, result)
                     then Entity.Set.add(changed, entity) else changed))
             )
@@ -327,7 +328,7 @@ fun elab (prefix, []) changed =
         then
         let
           val SOME E = getE primSig
-          val (imports,(B,strTys,tynameTys)) = 
+          val (imports,(B,strTys,tynameTys)) =
             UnitOps.makeEnv (initialB, deps, prefix, primSig)
           val entry = SepPrim.makePrimEntry (tynameTys, E)
         in
@@ -340,7 +341,7 @@ fun elab (prefix, []) changed =
           SOME (topbinditem, sourcemap) =>
           (case doelab (prefix, entity, openedstructures, topbinditem, sourcemap, fileref) of
             NONE => Failure
-          | SOME result => 
+          | SOME result =>
             (UnitManager.update(entity, SOME fileref, result);
             elab (entity::prefix, entities) (Entity.Set.add(changed, entity)))
           )

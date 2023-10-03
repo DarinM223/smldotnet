@@ -1,9 +1,9 @@
-structure TypeCommand : sig end = 
+structure TypeCommand : sig end =
 struct
       fun findBasis (longid) =
 	   case longid of [] => NONE
 	      | longid as (id::ids) =>
-		let 
+		let
 		    fun lookup(B, []) = SOME B
 		      | lookup((T,FE,GE,Env.Env(SE,TE,VE),path),[id]) =
 			  let fun filter(env) = case Symbol.Map.find(env,id) of
@@ -20,7 +20,7 @@ struct
 			  end
 		      | lookup ((T,F,G,E,path), id :: longid) =
 			(case Symbol.Map.find(EnvOps.SEofE E, id) of
-			     NONE => NONE 
+			     NONE => NONE
 			   | SOME E => lookup((T,Symbol.Map.empty,Symbol.Map.empty,E,path@[id]),longid))
 (*		    fun mkUnitEnv(entityType,envFromUnitType) =
 		            let val entityRef = (entityType,id)
@@ -35,7 +35,7 @@ struct
 *)
 
 		    fun mkUnitEnv(entityType,envFromUnitType) =
-		            let val entityRef = (entityType,id)
+		            let val entityRef = (entityType,id,Level.topLevel ())
 			    in
 			    case DepManager.dep entityRef of
 			          DepManager.Success  (smallSyntax,fileRef) =>
@@ -47,7 +47,7 @@ struct
 			    end
 
 
-                    (* defining usedClassesOrPackages as follows 
+                    (* defining usedClassesOrPackages as follows
 		       ensures we bring in any sibling constructors and child static methods of longid *)
 
                     val usedClassesOrPackages = Longid.Set.add(Longid.Set.singleton(List.rev (List.tl (List.rev longid))),
@@ -68,26 +68,26 @@ struct
 							 | _ => Symbol.Map.empty),
 					             Symbol.Map.empty,
 						     Symbol.Map.empty))
-					     
 
-		in  lookup(B,longid) 
+
+		in  lookup(B,longid)
 		end
 
-      fun act root arg = 
+      fun act root arg =
 	  case arg of
 	      [((arg,NONE))] =>
 		  (ignore(SourceManager.sync());(*@TODO: review *)
 		   case findBasis (map Id.fromString (String.fields (fn #"." => true | _ => false) arg)) of
 		       SOME B =>
-			   (Commands.mustQuit := true; 
+			   (Commands.mustQuit := true;
                             PrintManager.println (EnvOps.BasSig B);
 			    OS.Process.success)
-		     | NONE => 
+		     | NONE =>
 			   (PrintManager.println ("not found or not yet compiled");
 			    OS.Process.failure))
 	  | _ => (PrintManager.println "unexpected argument to command";
 		  OS.Process.failure)
-      
+
 
       val _ = Commands.add "type"
 	  {

@@ -15,7 +15,7 @@ val dumpDep = Controls.add false "dep.dump"
 val persist = Controls.add true "env.persistDep"
 
 datatype Result =
-  NotFound		
+  NotFound
 | ParseError
 | Success of SmallSyntax.DecItem * Entity.FileRef
 
@@ -37,7 +37,7 @@ end
 (*----------------------------------------------------------------------*)
 (* What's the name of the dependencies file for this source file?	*)
 (*----------------------------------------------------------------------*)
-fun depFileName filename = 
+fun depFileName filename =
 let
   val {dir,file} = OS.Path.splitDirFile filename
 in
@@ -46,7 +46,7 @@ in
 end
 
 (* Format number: hi-byte is version no., lo-byte is DEpendency info *)
-fun makePersister filename = 
+fun makePersister filename =
   Pickle.persist (Word8Vector.fromList [0wx04,0wxDE], filename, SmallSyntax.Pickle.dec)
 
 (*----------------------------------------------------------------------*)
@@ -58,14 +58,14 @@ else
 PrintManager.process ("Saving dependency information for " ^ filename, false) (fn () =>
 let
   val dir = depCacheDir filename
-  val _ = 
+  val _ =
     if OS.FileSys.access (dir,[]) then ()
     else OS.FileSys.mkDir dir
   val (pickle,_) = makePersister (depFileName filename)
 in
-  pickle smalldec handle Pickle.Unpickle s => 
-        (PrintManager.println 
-        ("[Warning: error writing dependency information for " ^ 
+  pickle smalldec handle Pickle.Unpickle s =>
+        (PrintManager.println
+        ("[Warning: error writing dependency information for " ^
         filename ^ ": " ^ s ^ "]"); ())
 end)
 
@@ -79,23 +79,23 @@ let
   val depname = depFileName filename
 in
   if OS.FileSys.access(depname, [])
-  then 
+  then
 
   (* If dependency file is dated wrt source file, don't read it *)
   if Time.>(time, OS.FileSys.modTime depname)
   then NONE
-  
+
   else
-  PrintManager.process 
+  PrintManager.process
   ("Reading dependency information for " ^ filename, false)
   (fn () =>
   let
     val (_,unpickle) = makePersister depname
   in
       SOME (unpickle ())
-      handle Pickle.Unpickle s => 
-        (PrintManager.println 
-        ("[Warning: error reading dependency information for " ^ 
+      handle Pickle.Unpickle s =>
+        (PrintManager.println
+        ("[Warning: error reading dependency information for " ^
         filename ^ ": " ^ s ^ "]"); NONE)
   end)
   else NONE
@@ -110,20 +110,21 @@ fun reset () = cache := StringMap.empty
 (* Given a bunch of (reduced) top-level decs, find the one appropriate  *)
 (* to this entity.							*)
 (*----------------------------------------------------------------------*)
-fun findDec (entity as (etype,eid), smalldec, sourcefileref, longids) =
+fun findDec (entity as (etype,eid,level), smalldec, sourcefileref, longids) =
 let
+  (* TODO(DarinM223): use level to find dec *)
   open SmallSyntax
 
-  fun add strexp = 
+  fun add strexp =
       if List.null longids then strexp else StrLet([Open longids], strexp)
 
-  fun addLocal decitem = 
+  fun addLocal decitem =
       Local([Open longids],[decitem])
 
   fun match (Structure bindings) =
       if etype = Entity.Str
-      then 
-      let 
+      then
+      let
         fun loop [] = NONE
           | loop ((id,strexp)::rest) =
             if Symbol.equal(id, eid) then SOME (Structure [(id,add strexp)])
@@ -135,8 +136,8 @@ let
 
     | match (Signature bindings) =
       if etype = Entity.Sig
-      then 
-      let 
+      then
+      let
         fun loop [] = NONE
           | loop ((id,sigexp)::rest) =
             if Symbol.equal(id, eid) then SOME (addLocal(Signature [(id,sigexp)]))
@@ -147,9 +148,9 @@ let
       else NONE
 
     | match (Functor bindings) =
-      if etype = Entity.Fun 
+      if etype = Entity.Fun
       then
-      let 
+      let
         fun loop [] = NONE
           | loop ((id,spec,strexp)::rest) =
             if Symbol.equal(id, eid) then SOME (addLocal(Functor [(id,spec,add strexp)]))
@@ -163,26 +164,26 @@ let
 
     | match _ = NONE
 
-  and loop [] = 
+  and loop [] =
       (PrintManager.println ("[Warning: source file " ^ #1 sourcefileref ^
        " has no binding for  " ^ EntityOps.description entity ^ "]"); NotFound)
 
     | loop (d::ds) =
       case match d of
         NONE => loop ds
-      | SOME d => 
+      | SOME d =>
         Success (d, sourcefileref)
-in 
+in
   loop smalldec
 end
-  
+
 (*----------------------------------------------------------------------*)
 (* Get dependency information, reparsing if source file has changed.	*)
 (*----------------------------------------------------------------------*)
 fun dep entity =
 case SourceManager.fileRefFor entity of
   NONE =>
-  (PrintManager.println ("[Warning: source file not found for " ^ 
+  (PrintManager.println ("[Warning: source file not found for " ^
     EntityOps.description entity ^ "]"); NotFound)
 
 | SOME (sourcefileref as (sourcefile,sourcetime), longids) =>
@@ -222,13 +223,13 @@ case SourceManager.fileRefFor entity of
       (* If it's not in the cache then first look for dependency file *)
     | NONE =>
       case deserialize sourcefileref of
-        NONE => 
+        NONE =>
         reparse ()
 
       | SOME smalldec =>
         (updateCache smalldec;
         findDec (entity, smalldec, sourcefileref, longids))
   end
-    
+
 end
 
