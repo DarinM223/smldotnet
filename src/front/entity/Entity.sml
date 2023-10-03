@@ -19,7 +19,7 @@ datatype Type = Sig | Str | Fun | FunSig | Assembly
 fun typeToInt Sig = 0
   | typeToInt Str = 1
   | typeToInt Fun = 2
-  | typeToInt FunSig = 3 
+  | typeToInt FunSig = 3
   | typeToInt Assembly = 4
 
 fun intToType 0 = Sig
@@ -32,17 +32,20 @@ fun intToType 0 = Sig
 (*----------------------------------------------------------------------*)
 (* A complete entity reference: type and source/assembly identitier.	*)
 (*----------------------------------------------------------------------*)
-type Ref = Type * Symbol.symbol
+type Ref = Type * Symbol.symbol * Level.level
 
 (*----------------------------------------------------------------------*)
 (* Finite sets and maps for entity references				*)
 (*----------------------------------------------------------------------*)
-structure Ord = 
-  struct 
+structure Ord =
+  struct
     type ord_key = Ref
-    fun compare((t1,s1), (t2,s2)) = 
+    fun compare((t1,s1,l1), (t2,s2,l2)) =
       case Int.compare(typeToInt t1, typeToInt t2) of
-        EQUAL => Symbol.Key.compare(s1, s2)
+        EQUAL =>
+          (case Symbol.Key.compare(s1, s2) of
+            EQUAL => Level.compare(l1, l2)
+          | other => other)
       | other => other
   end
 
@@ -60,9 +63,9 @@ type FileRef = string * Time.time
 (* Create a fileref, translating forward slashes into the OS		*)
 (* path separator. Also convert relative file names into absolute ones. *)
 (*----------------------------------------------------------------------*)
-fun makeFileRef (s, t) = 
+fun makeFileRef (s, t) =
 let
-  val s = 
+  val s =
     if SMLofNJ.SysInfo.getOSKind() = SMLofNJ.SysInfo.WIN32
     then String.map (fn #"/" => #"\\" | c => c) s
     else String.map (fn #"\\" => #"/" | c => c) s

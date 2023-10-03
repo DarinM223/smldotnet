@@ -4,7 +4,7 @@
 structure EntityOps :> ENTITYOPS =
 struct
 
-local 
+local
   open Entity
 in
 
@@ -19,41 +19,42 @@ fun typeToString Sig = "signature"
   | typeToString FunSig = "funsig"
   | typeToString Assembly = "assembly"
 
-fun description (t,id) = typeToString t ^ " " ^ Id.toString id
+fun description (t,id,_) = typeToString t ^ " " ^ Id.toString id
 
 
 (*----------------------------------------------------------------------*)
 (* Describe the entity and (optionally) its file.			*)
 (*----------------------------------------------------------------------*)
-fun descriptionWithFile (entity, fileref : FileRef) = 
-    description entity ^ 
+fun descriptionWithFile (entity, fileref : FileRef) =
+    description entity ^
     (if Controls.get showFileRefs then " [" ^ #1 fileref ^ "]" else "")
 
 (*----------------------------------------------------------------------*)
 (* String representation for diagnostic purposes only.			*)
 (*----------------------------------------------------------------------*)
-fun toString (_,id) = Id.toString id
+fun toString (_,id,_) = Id.toString id
 
-fun fileRefEq ((x1,t1), (x2,t2)) = 
+fun fileRefEq ((x1,t1), (x2,t2)) =
   x1=x2 andalso not (Time.>(t1,t2)) andalso not (Time.<(t1,t2))
 
 (*----------------------------------------------------------------------*)
 (* Equality test.							*)
 (*----------------------------------------------------------------------*)
-fun eq ((t1,s1),(t2,s2)) = t1 = t2 andalso Symbol.equal(s1,s2)
+fun eq ((t1,s1,l1),(t2,s2,l2)) = t1 = t2 andalso Symbol.equal(s1,s2) andalso l1 = l2
 
 local open Pickle in
-val pickler = 
-  pair 
+val pickler =
+  triple
   (
     wrap (intToType o Word32.toInt, Word32.fromInt o typeToInt) (ord 0w4),
-    IdPickle.id
+    IdPickle.id,
+    int
   )
 val fileRefPickler =
   pair
   (
     string,
-(*    wrap (Time.fromSeconds o Int.toLarge, 
+(*    wrap (Time.fromSeconds o Int.toLarge,
                 Int.fromLarge o Time.toSeconds) int *)
       wrap (valOf o Time.fromString,Time.toString) string
   )

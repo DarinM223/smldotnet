@@ -1,4 +1,4 @@
-Group 
+Group
 structure TopLevel
 is
 
@@ -12,7 +12,7 @@ $/basis.cm
 (*----------------------------------------------------------------------*)
 (* Generally useful stuff          					*)
 (*----------------------------------------------------------------------*)
-../gen/sources.cm 
+../gen/sources.cm
 ../pickle/sources.cm
 ../sym/sources.cm
 ../common/sources.cm
@@ -82,7 +82,7 @@ proj/ErrorManager.sml
 proj/ERRORMANAGER.sig
 proj/BuildManager.sml
 proj/DEPMANAGER.sig
-proj/DepManager.sml 
+proj/DepManager.sml
 proj/PARSEMANAGER.sig
 proj/ParseManager.sml
 proj/SOURCEMANAGER.sig
@@ -382,8 +382,10 @@ newcomp/RTSymbols.sml
 (*----------------------------------------------------------------------*)
 (* Entities: compilation units						*)
 (*----------------------------------------------------------------------*)
+entity/LEVEL.sig
+entity/Level.sml
 entity/Entity.sml
-entity/EntityOps.sml 
+entity/EntityOps.sml
 entity/ENTITYOPS.sig
 
 (*----------------------------------------------------------------------*)

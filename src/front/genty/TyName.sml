@@ -1,7 +1,7 @@
 (*======================================================================*)
 (* ML type names (Section 4.1, p16 Defn)				*)
 (*======================================================================*)
-structure TyName :> TYNAME = 
+structure TyName :> TYNAME =
 struct
 
 open ListOps
@@ -24,8 +24,8 @@ datatype EqStatus = NotEq | RefEq | Eq
 (*   5. Whether this is a class type (internal or external)		*)
 (*   6. The nesting depth, or #number of enclosing class of the class   *)
 (*----------------------------------------------------------------------*)
-datatype TyName = 
-  TyName of 
+datatype TyName =
+  TyName of
   {
     entity   : Entity.Ref,
     tag      : int,
@@ -43,14 +43,14 @@ type Supply = Entity.Ref * int
 structure Ord =
   struct
     type ord_key = TyName
-    fun compare 
-      (TyName {entity=e1, tag=i1, longid=id1, depth=d1,...}, 
+    fun compare
+      (TyName {entity=e1, tag=i1, longid=id1, depth=d1,...},
        TyName {entity=e2, tag=i2, longid=id2, depth=d2,...}) =
       (case Entity.Set.Key.compare (e1,e2) of
-        EQUAL => 
+        EQUAL =>
         (case Int.compare (i1, i2) of
           EQUAL =>
-          (case e1 of (Entity.Assembly,_) =>
+          (case e1 of (Entity.Assembly,_,_) =>
 	     (*@TODO: review - depth significant for external classes only *)
              (case Int.compare(d1,d2) of
 		 EQUAL => Compare.list Symbol.Key.compare (id1,id2)
@@ -72,8 +72,8 @@ type Renaming = TyName Map.map
 (*----------------------------------------------------------------------*)
 local open Pickle in
 
-val equalityPickler = 
-  alttag (fn NotEq => 0 | RefEq => 1 | Eq => 2) 
+val equalityPickler =
+  alttag (fn NotEq => 0 | RefEq => 1 | Eq => 2)
   [
     wrap (fn () => NotEq, fn NotEq => ()) unit,
     wrap (fn () => RefEq, fn RefEq => ()) unit,
@@ -101,20 +101,20 @@ fun longid ss = map Id.fromString ss
 (*----------------------------------------------------------------------*)
 (* Create a tyname associated with an external class, struct or prim	*)
 (*----------------------------------------------------------------------*)
-fun externalEq (assembly,id,depth) = 
-  TyName { entity = (Entity.Assembly,assembly), equality = Eq, longid = id, 
+fun externalEq (assembly,id,depth) =
+  TyName { entity = (Entity.Assembly,assembly, Level.topLevel ()), equality = Eq, longid = id,
     tag = 0, depth = depth, isClass = true  }
 
 fun externalValEq (assembly,id,depth) =
-  TyName { entity = (Entity.Assembly,assembly), equality = Eq, longid = id, 
+  TyName { entity = (Entity.Assembly,assembly, Level.topLevel ()), equality = Eq, longid = id,
     tag = 0, depth = depth, isClass = false }
 
-fun external (assembly,id,depth) = 
-  TyName { entity = (Entity.Assembly,assembly), equality = NotEq, longid = id, 
+fun external (assembly,id,depth) =
+  TyName { entity = (Entity.Assembly,assembly, Level.topLevel ()), equality = NotEq, longid = id,
     tag = 0, depth = depth, isClass = true }
 
-fun externalVal (assembly,id,depth) = 
-  TyName { entity = (Entity.Assembly,assembly), equality = NotEq, longid = id, 
+fun externalVal (assembly,id,depth) =
+  TyName { entity = (Entity.Assembly,assembly, Level.topLevel ()), equality = NotEq, longid = id,
     tag = 0, depth = depth, isClass = false }
 
 (*----------------------------------------------------------------------*)
@@ -126,12 +126,12 @@ fun eq (tyname1,tyname2) = Ord.compare(tyname1, tyname2) = EQUAL
 (* Type name supply functions						*)
 (*----------------------------------------------------------------------*)
 fun initial entity = (entity,1)
-fun fresh (longid, eq) (entity,i) = 
-  (TyName { entity = entity, tag = i, equality = eq, longid = longid, depth = 0, isClass = false }, 
+fun fresh (longid, eq) (entity,i) =
+  (TyName { entity = entity, tag = i, equality = eq, longid = longid, depth = 0, isClass = false },
   (entity,i+1))
 
-fun freshClass longid (entity,i) = 
-  (TyName { entity = entity, tag = i, equality = NotEq, longid = longid, depth = 0, isClass = true }, 
+fun freshClass longid (entity,i) =
+  (TyName { entity = entity, tag = i, equality = NotEq, longid = longid, depth = 0, isClass = true },
   (entity,i+1))
 
 fun freshen longid' (TyName { entity, tag, equality, longid, depth, isClass },
@@ -139,8 +139,8 @@ fun freshen longid' (TyName { entity, tag, equality, longid, depth, isClass },
   (TyName {entity = entity', tag = tag', equality = equality, depth = depth, isClass = isClass,
            longid = longid' @ [List.last longid] }, (entity',tag'+1))
 
-fun freshRec pairs (entity,i) = 
-  (mapi (fn (j,(longid,equality)) => 
+fun freshRec pairs (entity,i) =
+  (mapi (fn (j,(longid,equality)) =>
     TyName { entity = entity, tag = i+j, longid = longid,
              equality = equality, isClass = false, depth = 0 }) pairs, (entity,i+length pairs))
 
@@ -148,8 +148,8 @@ fun newEquality (TyName { entity, tag, equality, longid, isClass, depth}) equali
   TyName { entity = entity, tag = tag, equality = equality',longid = longid, isClass = isClass, depth = depth }
 
 fun temp (longids, equality) = mapi (fn (i, longid) =>
-  TyName { entity = (Entity.Str, Id.fromString "$temp"),
-           tag = ~i, equality = equality, longid = longid, 
+  TyName { entity = (Entity.Str, Id.fromString "$temp", Level.topLevel ()),
+           tag = ~i, equality = equality, longid = longid,
 	   isClass = false, depth=0 }) longids
 
 fun depth (TyName { depth, ... }) = depth
@@ -162,29 +162,29 @@ fun equality (TyName { equality, ... }) = equality
 
 fun isClass (TyName { isClass, ... }) = isClass
 
-fun isExternal (TyName { entity = (Entity.Assembly,_), ... }) = true
+fun isExternal (TyName { entity = (Entity.Assembly,_,_), ... }) = true
   | isExternal _ = false
 
-fun fromExternal (TyName { entity = (Entity.Assembly,assembly), longid, depth,...}) =
+fun fromExternal (TyName { entity = (Entity.Assembly,assembly,_), longid, depth,...}) =
     SOME (assembly,longid,depth)
   | fromExternal _ = NONE
 
 (* @todo akenn: externals *)
-fun hash 
+fun hash
   (TyName { entity, tag, equality, longid, ... }) =
     Gen.combine (Word.fromInt tag + 0w1, Symbol.HashKey.hashVal (#2 entity))
 
 (*----------------------------------------------------------------------*)
 (* Was a tyname generated earlier than the point specified?     	*)
 (*----------------------------------------------------------------------*)
-fun earlier 
-  (TyName { entity, tag, ...}, (entity', tag')) = 
+fun earlier
+  (TyName { entity, tag, ...}, (entity', tag')) =
   not (EntityOps.eq (entity, entity')) orelse tag<tag'
 
 (*----------------------------------------------------------------------*)
 (* Display a type name							*)
 (*----------------------------------------------------------------------*)
-fun toString (tyname as TyName { entity,tag,longid,equality,... }) = 
+fun toString (tyname as TyName { entity,tag,longid,equality,... }) =
   (if Controls.get showTyNameSort andalso equality=Eq then "'" else "")
  ^
   ((*if eq(tyname, boolTyName) then "bool"
@@ -193,9 +193,9 @@ fun toString (tyname as TyName { entity,tag,longid,equality,... }) =
    else if eq(tyname, optionTyName) then "option"
    else if eq(tyname, orderTyName) then "order"
    else if eq(tyname, stringTyName) then "string"
-   else*) Longid.toString longid) 
+   else*) Longid.toString longid)
   ^
-  (if (Controls.get showStamps orelse null longid) then "(" ^ 
+  (if (Controls.get showStamps orelse null longid) then "(" ^
      (EntityOps.toString entity) ^ "#" ^ Int.toString tag ^ ")" else "")
 
 end

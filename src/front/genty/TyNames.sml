@@ -7,10 +7,10 @@ struct
 (*----------------------------------------------------------------------*)
 (* Entities								*)
 (*----------------------------------------------------------------------*)
-val primEntity = (Entity.Sig, Id.fromString "PRIM")
-val datatypeEntity = (Entity.Str, Id.fromString "Datatypes")
-val generalEntity = (Entity.Str, Id.fromString "General")
-val primUtilsEntity = (Entity.Str, Id.fromString "PrimUtils_")
+val primEntity = (Entity.Sig, Id.fromString "PRIM", Level.topLevel ())
+val datatypeEntity = (Entity.Str, Id.fromString "Datatypes", Level.topLevel ())
+val generalEntity = (Entity.Str, Id.fromString "General", Level.topLevel ())
+val primUtilsEntity = (Entity.Str, Id.fromString "PrimUtils_", Level.topLevel ())
 
 (*----------------------------------------------------------------------*)
 (* Base types identified with external classes				*)
@@ -56,13 +56,13 @@ val sumTagEnum = TyName.externalValEq(Id.fromString "",[RepNames.internalNamespa
 (*----------------------------------------------------------------------*)
 val datatypeSupply = TyName.initial datatypeEntity
 
-val (listTyName,datatypeSupply) = 
+val (listTyName,datatypeSupply) =
   TyName.fresh ([Id.fromString "list"], TyName.Eq) datatypeSupply
 
-val (optionTyName,datatypeSupply) = 
+val (optionTyName,datatypeSupply) =
   TyName.fresh ([Id.fromString "option"], TyName.Eq) datatypeSupply
 
-val (orderTyName,datatypeSupply) = 
+val (orderTyName,datatypeSupply) =
   TyName.fresh ([Id.fromString "order"], TyName.Eq) datatypeSupply
 
 (*----------------------------------------------------------------------*)
@@ -71,19 +71,19 @@ val (orderTyName,datatypeSupply) =
 (*----------------------------------------------------------------------*)
 val primSupply = TyName.initial primEntity
 
-val (vectorTyName,primSupply) = 
+val (vectorTyName,primSupply) =
   TyName.fresh ([Id.fromString "vector"], TyName.Eq) primSupply
 
-val (heapTyName,primSupply) = 
+val (heapTyName,primSupply) =
   TyName.fresh ([Id.fromString "heap"], TyName.Eq) primSupply
 
-val (fieldTyName,primSupply) = 
+val (fieldTyName,primSupply) =
   TyName.fresh ([Id.fromString "field"], TyName.Eq) primSupply
 
-val (staticTyName,primSupply) = 
+val (staticTyName,primSupply) =
   TyName.fresh ([Id.fromString "static"], TyName.Eq) primSupply
 
-val (addressTyName,primSupply) = 
+val (addressTyName,primSupply) =
   TyName.fresh ([Id.fromString "address"], TyName.Eq) primSupply
 
 (*----------------------------------------------------------------------*)
@@ -102,10 +102,10 @@ val (mlexnTyName, primUtilsSupply) =
 (*----------------------------------------------------------------------*)
 val generalSupply = TyName.initial generalEntity
 
-val (bindTyName,generalSupply) = 
+val (bindTyName,generalSupply) =
   TyName.fresh ([Id.fromString "Bind"], TyName.NotEq) generalSupply
 
-val (matchTyName,primSupply) = 
+val (matchTyName,primSupply) =
   TyName.fresh ([Id.fromString "Match"], TyName.NotEq) generalSupply
 
 fun default tynames =
@@ -128,7 +128,7 @@ fun default tynames =
 local
   val m = foldr TyName.Map.insert' TyName.Map.empty
     [(int8TyName, "Int8.int"),
-     (int16TyName, "Int16.int"),     
+     (int16TyName, "Int16.int"),
      (int32TyName, "int"),
      (int64TyName, "Int64.int"),
      (word8TyName, "Word8.word"),
@@ -145,12 +145,12 @@ local
      (orderTyName, "order"),
      (real64TyName, "real"),
      (objectTyName, "object")]
-in     
+in
   fun toString tyname =
   case TyName.Map.find(m, tyname) of
     SOME s => s
   | NONE => TyName.toString tyname
 end
- 
+
 end
 

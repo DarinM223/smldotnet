@@ -6,7 +6,7 @@ local open SMLTy in
 type ErrorArg = string * Type
 type Errors   = (Error.Error * ErrorArg list) list
 
-val entity = ref (Entity.Str, Id.dummySym)
+val entity = ref (Entity.Str, Id.dummySym, Level.topLevel ())
 
 (* Variable supplies *)
 val tyvarsupply = ref TyVar.initial
@@ -19,13 +19,13 @@ fun noSeriousErrors () = not (List.exists  (fn(e,_) => Error.isSerious e) (!erro
 val DE = ref ([] : DatEnv)
 val psi = ref (TyName.Map.empty : Realisation)
 
-type 'a ElabResult = 
+type 'a ElabResult =
   'a * Error.Error list * DatEnv * Realisation
 
 (*----------------------------------------------------------------------*)
 (* Generate a new type variable with the specified sort			*)
 (*----------------------------------------------------------------------*)
-fun freshTyVar sort = 
+fun freshTyVar sort =
 let
   val (tyvar, ts) = TyVar.fresh sort (!tyvarsupply)
 in
@@ -36,12 +36,12 @@ end
 fun freshType () = tyVarType (freshTyVar (TyVar.Normal TySort.any))
 fun freshMono () = tyVarType (freshTyVar (TyVar.Normal TySort.mono))
 
-fun openRecType fields = 
+fun openRecType fields =
 let
   val rowvar = freshTyVar (TyVar.Normal TySort.any)
 in
-  SMLTy.inj (Rec (ref 
-  (foldr (fn ((lab,ty),row) => 
+  SMLTy.inj (Rec (ref
+  (foldr (fn ((lab,ty),row) =>
     Symbol.Map.insert(row,lab,ty)) Symbol.Map.empty fields,
     SOME (ref (RowVar rowvar)))))
 end
@@ -49,7 +49,7 @@ end
 (*----------------------------------------------------------------------*)
 (* Generate a new term variable						*)
 (*----------------------------------------------------------------------*)
-fun freshVar () = 
+fun freshVar () =
 let
   val x = !varsupply
 in
@@ -85,7 +85,7 @@ end
 fun freshRecTyNames args =
 let
   val (tynames, ts) = TyName.freshRec args (!tynamesupply)
-in 
+in
   tynamesupply := ts;
   tynames
 end
@@ -94,15 +94,15 @@ end
 (* Generate new type names for each element of a set of type names      *)
 (*----------------------------------------------------------------------*)
 fun makeRenaming (longid, tynames) =
-let  
-  fun make [] = 
+let
+  fun make [] =
       (TyName.Map.empty, TyName.Set.empty)
 
     | make (tyname::tynames) =
-      let 
+      let
         val (r,T) = make tynames
-        val (tyname', ts) = 
-          TyName.freshen longid (tyname,!tynamesupply) 
+        val (tyname', ts) =
+          TyName.freshen longid (tyname,!tynamesupply)
       in
         tynamesupply := ts;
         (TyName.Map.insert(r, tyname, tyname'), TyName.Set.add(T,tyname'))
@@ -118,7 +118,7 @@ fun getEntity () = !entity
 (*----------------------------------------------------------------------*)
 (* Add an error message to the list					*)
 (*----------------------------------------------------------------------*)
-fun error e = 
+fun error e =
   errors := e :: !errors
 
 (*----------------------------------------------------------------------*)
@@ -133,13 +133,13 @@ fun addDE DE' =
 fails to accummulate the actual realisation.
 *)
 (*@TODO: review and test *)
-(*@BUG: (potential) should we worry about capturing tvs or tn? 
+(*@BUG: (potential) should we worry about capturing tvs or tn?
         addDE assumes these aren't involved in psi *)
 fun addDE DE' =
   let val psiDE' = map (map (fn (tvs,tn,m) =>
 			(tvs,
 			 tn,
-			 Symbol.Map.map 
+			 Symbol.Map.map
 			   (Option.map (SMLTy.appRealisation (!psi)))
 			   m)
 			)) DE'
@@ -160,9 +160,9 @@ fails to accummulate the actual realisation.
 (*@BUG: CRUSSO (potential) should we worry about capturing tvs?
         addRealisation assumes these aren't involved in psi *)
 fun addRealisation psi' =
-  psi := TyName.Map.unionWith #2 
-         (!psi, 
-	  TyName.Map.map (fn (tvs,ty) => 
+  psi := TyName.Map.unionWith #2
+         (!psi,
+	  TyName.Map.map (fn (tvs,ty) =>
 			  (tvs,SMLTy.appRealisation (!psi) ty))
 	                  psi')
 
@@ -170,7 +170,7 @@ fun addRealisation psi' =
 (*----------------------------------------------------------------------*)
 (* Run an elaborator with the state initialised.			*)
 (*----------------------------------------------------------------------*)
-fun runelab newentity elaborator = 
+fun runelab newentity elaborator =
   (tyvarsupply := TyVar.initial;
    tynamesupply := TyName.initial newentity;
    varsupply := 1;
@@ -179,17 +179,17 @@ fun runelab newentity elaborator =
    entity := newentity;
    errors := [];
 
-  let 
+  let
     val v = elaborator ()
 
     val DE = !DE
     val errors = !errors
     val psi = !psi
-   
+
     fun convertError (err, args) =
     let
-      val tyvars = TyVar.Set.filter (not o TyVar.isExplicit) (foldl 
-        (fn ((_,ty), tvs) => TyVar.Set.union(tyvars ty, tvs)) 
+      val tyvars = TyVar.Set.filter (not o TyVar.isExplicit) (foldl
+        (fn ((_,ty), tvs) => TyVar.Set.union(tyvars ty, tvs))
          TyVar.Set.empty args)
       val (S,_) = foldl (fn (tyvar, (S,supply)) =>
         let val (tyvar', supply') = TyVar.fresh (TyVar.sort tyvar) supply
@@ -197,22 +197,22 @@ fun runelab newentity elaborator =
           ((tyvar, tyVarType tyvar')::S, supply')
         end) ([], TyVar.initial) (TyVar.Set.listItems tyvars)
     in
-      Error.append(err, String.concat 
+      Error.append(err, String.concat
         (map (fn (tag, ty) => "\n    " ^ tag ^ ": " ^ openTypeToString
           (appSubst S ty)) args))
     end
- 
-  in 
+
+  in
     (v, map convertError errors, rev DE, psi)
   end)
 
 fun appRenamingDE r =
   DE := map (fn dds =>
       (map (fn (tyvars, tyname, CE) =>
-        (tyvars, TyName.rename r tyname, 
+        (tyvars, TyName.rename r tyname,
            Symbol.Map.map (Option.map (renameType r))
-           CE)) dds)) (!DE)  
-  
+           CE)) dds)) (!DE)
+
 
 end
 
