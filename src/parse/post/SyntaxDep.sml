@@ -193,18 +193,12 @@ Entity.Map.appi
 *)
 )
 
-fun testCycle (entity, pending, sourcemap) =
+fun testCycle (entity as (typ, id, level), pending, sourcemap) =
 let
-  fun find acc [] = ()
+  fun find acc [] = entity
     | find acc (entity'::rest) =
       if EntityOps.eq(entity,entity')
-      then
-      (
-        PrintManager.println (
-        EntityOps.description entity ^ " is in a circular definition with " ^
-        Pretty.vec ("itself", "", "", "", "", " and ") EntityOps.description
-        acc); raise Cycle
-      )
+      then (typ, id, level - 1)
       else find (entity'::acc) rest
 in
   find [] pending
@@ -289,7 +283,8 @@ case strexp of
       (resultenv, Entity.Set.union(refs, Entity.Set.add(argrefs, entity)))
 
     | NONE =>
-      (testCycle (entity, pending, sourcemap);
+      let val entity = testCycle (entity, pending, sourcemap)
+      in
         case DepManager.dep entity of
           DepManager.Success (Local([openitem as Open _],[Functor [(_, spec, strexp)]]), _) =>
           let
@@ -313,7 +308,7 @@ case strexp of
 
         | DepManager.NotFound =>
           (emptyEnv, Entity.Set.add(argrefs, entity))
-      )
+      end
   end
 
 | StrLet(dec, strexp) =>
@@ -339,7 +334,8 @@ case sigexp of
       (env, Entity.Set.singleton entity)
 
     | NONE =>
-      (testCycle (entity, pending, sourcemap);
+      let val entity = testCycle (entity, pending, sourcemap)
+      in
         case DepManager.dep entity of
           DepManager.Success (Local([openitem as Open _],[Signature [(_,sigexp)]]), _) =>
           let
@@ -363,7 +359,7 @@ case sigexp of
 
         | DepManager.NotFound =>
           (emptyEnv, Entity.Set.singleton entity)
-      )
+      end
   end
 
 | SigSpec spec =>
@@ -459,7 +455,8 @@ let
       analyseLocal ((SourceStruct,env), Entity.Set.singleton entity) ids
 
     | NONE =>
-      (testCycle (entity, pending, sourcemap);
+      let val entity = testCycle (entity, pending, sourcemap)
+      in
         case DepManager.dep entity of
           DepManager.Success (Structure [(_,strexp)], _) =>
           let
@@ -483,7 +480,7 @@ let
 
         | DepManager.NotFound =>
           ((SourceStruct, emptyEnv), Entity.Set.singleton entity)
-     )
+      end
 in
   (case source of
     Class longid => (classes := Longid.Set.add(!classes, longid))
