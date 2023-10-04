@@ -1,0 +1,7 @@
+signature HELLO=a.sml
+structure Hello=a.sml
+checkpoint
+signature HELLO=b.sml
+structure Hello=b.sml
+export Hello
+make

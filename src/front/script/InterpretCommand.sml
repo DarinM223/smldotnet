@@ -16,8 +16,8 @@ fun interpretOne scope print (loc,command) =
   C.RunScript name =>
   let
     fun loop' scope' [] = true
-      | loop' scope' (command::commands) = 
-        if interpretOne scope' print command 
+      | loop' scope' (command::commands) =
+        if interpretOne scope' print command
         then loop' scope' commands
         else false
     val name = FileOps.normalizePath scope name
@@ -29,10 +29,12 @@ fun interpretOne scope print (loc,command) =
       let
         val fullname = SourceMap.fileName sm
       in
-        PrintManager.println("[Interpreting commands in file " ^ fullname ^ "...]"); 
+        PrintManager.println("[Interpreting commands in file " ^ fullname ^ "...]");
        loop' (case OS.Path.dir fullname of "" => scope | dir => dir) commands
       end
   end
+| C.Command("checkpoint", _) =>
+  (Level.incr (); true)
 
 | C.Command("quit", _) =>
   false
@@ -48,15 +50,15 @@ fun interpretOne scope print (loc,command) =
   | NONE =>
     case Controls.lookup name of
       [] => (PrintManager.println("No such command: " ^ name); false)
-    | bs => 
+    | bs =>
       case arg of
         C.Bool b => (app (fn (_,bref) => Controls.set (bref, b)) bs; true)
       | C.List [] => (app (fn (_,bref) => Controls.set (bref, true)) bs; true)
-      | C.Query => 
+      | C.Query =>
   (
     case Controls.lookup name of
       [] => (PrintManager.println("?: " ^ name ^ " is not a valid switch"))
-    | bs => 
+    | bs =>
       (app (fn (s,b) => print ((if Controls.get b then "on " else "off ") ^ s ^ "\n")) bs);
 
     true
@@ -77,9 +79,9 @@ fun interpret scope print commands =
 let
   fun loop [] = Success
     | loop ((_,C.Command("quit",_))::_) = Quit
-    | loop (command::commands) = 
-      if interpretOne scope print command 
-      then loop commands 
+    | loop (command::commands) =
+      if interpretOne scope print command
+      then loop commands
       else Failure
 in
   loop commands
@@ -87,7 +89,7 @@ end
 
 val _ = Commands.add "cd"
 {
-  act = fn root => fn [(dir,NONE)] => 
+  act = fn root => fn [(dir,NONE)] =>
                       if not (OS.FileSys.access(dir, []))
                       then (PrintManager.println ("cd: " ^ dir ^ " does not exist"); OS.Process.failure)
                       else if not (OS.FileSys.isDir dir)
@@ -104,7 +106,7 @@ val _ = Commands.add "cd"
 
 val _ = Commands.add "cmd"
 {
-  act = fn root => 
+  act = fn root =>
   fn [] => OS.Process.success
    | [(cmd,NONE)] => OS.Process.system cmd,
   query = fn () => "",
