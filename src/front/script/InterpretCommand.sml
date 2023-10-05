@@ -33,8 +33,6 @@ fun interpretOne scope print (loc,command) =
        loop' (case OS.Path.dir fullname of "" => scope | dir => dir) commands
       end
   end
-| C.Command("checkpoint", _) =>
-  (Level.incr (); true)
 
 | C.Command("quit", _) =>
   false
@@ -113,6 +111,15 @@ val _ = Commands.add "cmd"
   syntax = "<arguments>",
   help = "cmd <arguments>\n\
          \  Shell command"
+}
+
+val _ = Commands.add "checkpoint"
+{
+  act = fn root => fn _ => (Level.incr (); OS.Process.success),
+  query = fn () => "",
+  syntax = "",
+  help = "checkpoint\n\
+         \ Set checkpoint for shadowing"
 }
 
 end

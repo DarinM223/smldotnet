@@ -182,7 +182,6 @@ fun find entity [] filename = NONE
         NONE => find entity dirs filename
       | SOME _ => SOME ((name, time), strids)
 
-
 (*----------------------------------------------------------------------*)
 (* Find a file for this entity reference.       			*)
 (*----------------------------------------------------------------------*)
@@ -230,6 +229,11 @@ fun fileRefFor (entity as (etype, id, level)) =
 
         end
 
+fun fileRefFor' (entity as (etype, id, level)) =
+  case fileRefFor entity of
+    SOME result => (PrintManager.println ("Found it!"); SOME result)
+  | NONE => if level = Level.rootLevel then (PrintManager.println ("No good " ^ Int.toString level); NONE) else
+    (PrintManager.println ("Failed, trying " ^ Int.toString (level - 1)); fileRefFor' (etype, id, level - 1))
 
 
 fun sourcePath root [] =
@@ -301,7 +305,7 @@ fun makeMapper command kind =
     let val id = String.extract(id, 0, SOME (size id - 1))
     in
       sync();
-      case fileRefFor (kind,Id.fromString id, Level.topLevel ()) of
+      case fileRefFor' (kind,Id.fromString id, Level.topLevel ()) of
         NONE =>
         PrintManager.println (command ^ " " ^ id ^ " does not exist")
 
@@ -330,7 +334,9 @@ fun makeMapper command kind =
           )
 
         | Result.Success normname =>
-          (Entity.Map.insert(m, (kind,Id.fromString id, Level.topLevel ()), normname), success)
+          ( Entity.printMap m
+          ; (Entity.Map.insert(m, (kind,Id.fromString id, Level.topLevel ()), normname), success)
+          )
     in
       case foldl processArg (!translation,true) args of
         (_,false) => OS.Process.failure

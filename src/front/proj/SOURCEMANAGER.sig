@@ -14,7 +14,7 @@ sig
 (*    !projPath is searched for a filename constructed from the         *)
 (*    identifer with extension given .sig or .sml as appropriate.       *)
 (* IMPORTANT: more than one entity can map onto the same physical file. *)
-(* (useful when multiple top-level decs are in the file). 		*) 
+(* (useful when multiple top-level decs are in the file). 		*)
 (*----------------------------------------------------------------------*)
 
 val translation : string Entity.Map.map ref  (* default is empty    *)
@@ -28,7 +28,7 @@ val translation : string Entity.Map.map ref  (* default is empty    *)
 (* Typically strids = preOpenedStructures = ["Datatypes","Basis"]       *)
 (*----------------------------------------------------------------------*)
 val preOpenedStructures : string list
-val projPath    : (string*string list) list ref  
+val projPath    : (string*string list) list ref
 val basisPath   : (string*string list) list ref
 
 (*----------------------------------------------------------------------*)
@@ -41,6 +41,7 @@ val sync        : unit -> bool
 (* Return the file ref associated with a particular entity, together	*)
 (* with the strids that should be opened implicitly.			*)
 (*----------------------------------------------------------------------*)
+val fileRefFor' : Entity.Ref -> (Entity.FileRef * Syntax.longid list) option
 val fileRefFor : Entity.Ref -> (Entity.FileRef * Syntax.longid list) option
 
 end
