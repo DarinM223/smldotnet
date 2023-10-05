@@ -52,6 +52,16 @@ structure Ord =
 structure Map = MapFn(Ord)
 structure Set = SetFn(Ord)
 
+fun findInMap (map : 'a Map.map, entity as (typ, id, level)) : 'a option =
+  case Map.find(map, entity) of
+    SOME result => SOME result
+  | NONE => if level = Level.rootLevel then NONE else findInMap (map, (typ, id, level - 1))
+
+fun printMap m =
+  ( List.app (fn ((a, sym, level), b) => print ("(" ^ UString.toMLString (Symbol.toUString sym) ^ "," ^ Level.toString level ^ ") ")) (Map.listItemsi m)
+  ; print "\n"
+  )
+
 (*----------------------------------------------------------------------*)
 (* Type used for file identities: includes the full path name of the 	*)
 (* file (so no confusion when search paths are altered) and its 	*)
