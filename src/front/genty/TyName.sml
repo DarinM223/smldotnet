@@ -102,19 +102,19 @@ fun longid ss = map Id.fromString ss
 (* Create a tyname associated with an external class, struct or prim	*)
 (*----------------------------------------------------------------------*)
 fun externalEq (assembly,id,depth) =
-  TyName { entity = (Entity.Assembly,assembly, Level.topLevel ()), equality = Eq, longid = id,
+  TyName { entity = (Entity.Assembly,assembly, Level.rootLevel), equality = Eq, longid = id,
     tag = 0, depth = depth, isClass = true  }
 
 fun externalValEq (assembly,id,depth) =
-  TyName { entity = (Entity.Assembly,assembly, Level.topLevel ()), equality = Eq, longid = id,
+  TyName { entity = (Entity.Assembly,assembly, Level.rootLevel), equality = Eq, longid = id,
     tag = 0, depth = depth, isClass = false }
 
 fun external (assembly,id,depth) =
-  TyName { entity = (Entity.Assembly,assembly, Level.topLevel ()), equality = NotEq, longid = id,
+  TyName { entity = (Entity.Assembly,assembly, Level.rootLevel), equality = NotEq, longid = id,
     tag = 0, depth = depth, isClass = true }
 
 fun externalVal (assembly,id,depth) =
-  TyName { entity = (Entity.Assembly,assembly, Level.topLevel ()), equality = NotEq, longid = id,
+  TyName { entity = (Entity.Assembly,assembly, Level.rootLevel), equality = NotEq, longid = id,
     tag = 0, depth = depth, isClass = false }
 
 (*----------------------------------------------------------------------*)
