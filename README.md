@@ -53,6 +53,8 @@ Warning: if the SML.NET compiled versions of
 Windows style line endings. So you should run
 `dos2unix` on `.lex` and `.grm` files first.
 
+To build SML.NET on Linux, first run `bld/buildsmlnet.sh`.
+
 Features
 --------
 
