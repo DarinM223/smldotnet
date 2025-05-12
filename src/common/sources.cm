@@ -15,7 +15,7 @@ Group
    signature RTINT (* Java integers *)
    structure RTInt
    signature RTLONG (* Java longs *)
-   structure RTLong 
+   structure RTLong
    signature JAVAINTINF (* Java BigIntegers *)
    structure JavaIntInf
    signature NUMOPS (* Operations on Java integers and Java longs *)
@@ -27,7 +27,7 @@ Group
    structure RTFloat
    signature RTDOUBLE (* Java doubles (64 bit reals) *)
    structure RTDouble
-   signature PACKABLE 
+   signature PACKABLE
    (* Signature of structures in RTInt,RTLong,UString,RTFloat and
       RTDouble which represent these as Word8Vectors. *)
    structure IntConvFlags
@@ -58,15 +58,15 @@ Group
 is
    $/smlnj-lib.cm
    $/basis.cm
-   
+
    (* class handles *)
    handles/CLASSHANDLE.sig
    handles/ClassHandle.sml
-   
+
 (* Runtime types and constants *)
    typesconsts/CONSTANTS.sig
    typesconsts/Constants.sml
-   typesconsts/TYPES.sig 
+   typesconsts/TYPES.sig
    typesconsts/Types.sml
 
 (* Runtime values and code for converting them to and from various
@@ -74,7 +74,7 @@ is
    values/RTINT.sig
    values/RTInt.sml
    values/RTLONG.sig
-   values/RTLong.sml 
+   values/RTLong.sml
    values/JAVAINTINF.sig
    values/JavaIntInf.sml
 
@@ -82,7 +82,7 @@ is
    values/REP16.sig (* Rep16:NUMOPS->REP16s is used to represent
                        Java integers and longs as lists of ordinary
                        ML integers *)
-   values/Rep16.sml   
+   values/Rep16.sml
    values/USTRING.sig (* Java strings *)
    values/UString.sml
    values/UCHAR.sig (* Classifies Unicode characters *)
@@ -91,7 +91,7 @@ is
    values/RTFloat.sml
    values/RTDOUBLE.sig (* Java doubles (64 bit reals) *)
    values/RTDouble.sml
-   values/PACKABLE.sig 
+   values/PACKABLE.sig
    (* Signature of structures in RTInt,RTLong,UString,RTFloat and
       RTDouble which represent these as Word8Vectors. *)
    values/IntConvFlags.sml
@@ -111,7 +111,8 @@ is
    values/INTOPS.sig
    values/MULCARRY.sig
    values/MulCarry.sml
-   
+   values/MulCarryLong.sml
+
    values/PACKFLOAT.sig (* Used internally for packing reals in Word8Vectors *)
    values/PackFloat.sml
    values/UNPACKFLOAT.sig (* Used internally for unpacking reals from
@@ -128,7 +129,7 @@ is
    (* The structures in utils are used by other code in this sources.cm
       file but are also used by the backend *)
    utils/ASSERT.sig (* Used for reporting errors when decoding
-                             classfiles and unpacking values from 
+                             classfiles and unpacking values from
                              Word8Vectors *)
    utils/Assert.sml
    utils/NUMBERS.sig (* Used for encoding numbers as Word8Vectors *)
@@ -144,8 +145,8 @@ is
 
    utils/SYMBOL.sig (* Implements symbols for the compiler *)
    utils/Symbol.sml
-   utils/GeneralSymbol.sml 
-                
+   utils/GeneralSymbol.sml
+
    utils/RESERVED.sig
    utils/Reserved.sml
 

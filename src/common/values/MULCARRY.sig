@@ -3,7 +3,8 @@
    *)
 signature MULCARRY=
 sig
+   type word
    (* In each case, the carry is given first *)
-   val mul10:Word32.word->Word32.word*Word32.word
-   val mul16:Word32.word->Word32.word*Word32.word
+   val mul10:word->word*word
+   val mul16:word->word*word
 end
