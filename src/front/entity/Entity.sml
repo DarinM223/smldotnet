@@ -63,7 +63,7 @@ type FileRef = string * Time.time
 fun makeFileRef (s, t) =
 let
   val s =
-    if SMLofNJ.SysInfo.getOSKind() = SMLofNJ.SysInfo.WINDOWS
+    if SMLofNJ.SysInfo.getOSKind() = SMLofNJ.SysInfo.WIN32
     then String.map (fn #"/" => #"\\" | c => c) s
     else String.map (fn #"\\" => #"/" | c => c) s
 in
