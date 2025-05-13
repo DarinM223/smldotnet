@@ -11,7 +11,8 @@ Status
 ------
 
 This project has been updated to compile
-and build the demos with 64-bit SML/NJ 2025.1.
+and build the demos with modern 64-bit SML/NJ
+(> 2025.1, currently on the master branch only).
 In order to use the legacy 32-bit SML/NJ versions,
 use the `legacy` branch instead.
 
