@@ -46,7 +46,7 @@ struct
       node.  internal nodes are a tuple of a node label and an arc list.
       *)
 
-   structure IBM=IntBinaryMap (* this is just an abbreviation *)
+   structure IBM=IntRedBlackMap (* this is just an abbreviation *)
 
    datatype node=N of int
 

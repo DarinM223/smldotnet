@@ -1,9 +1,9 @@
 (* Symbols are hashed UStrings which support fast equality testing
    and hashing.  We keep a record of all the symbols made so far so
-   that we don't have to make them again. 
+   that we don't have to make them again.
 
    WARNING.  Symbols will not work in a multi-threaded environment
-   unless it is revised and locks put in at critical sections. 
+   unless it is revised and locks put in at critical sections.
    *)
 structure GeneralSymbol:>SYMBOL=
 struct
@@ -19,7 +19,7 @@ struct
    type symbol=int
 
    (* Initial sizes of the string array and the hash table.
-      These are both made pretty big since rehashing is expensive. 
+      These are both made pretty big since rehashing is expensive.
       *)
    val initial_stringarr_size=8192
    val initial_hash_size=8192 (* This should be a power of 2 *)
@@ -45,7 +45,7 @@ struct
       let
          val slot= !next_slot
       in
-          if slot < Array.length(!stringarr) 
+          if slot < Array.length(!stringarr)
           then
               (Array.update(!stringarr,slot,js);
                next_slot:=slot+1;
@@ -84,7 +84,7 @@ struct
          val highbit=(Word.fromInt size) div 0w2
          val highbiti=Word.toInt highbit
 
-         fun part(f,x)= 
+         fun part(f,x)=
          (* Like List.partition but without currying or list reversal *)
          let
             fun partit(asf,bsf,[])=(asf,bsf)
@@ -134,11 +134,11 @@ struct
                          (* The element is not there.  Add it. *)
                          let
                              val index=insert js
-                         in 
-                             if index >= 0 
+                         in
+                             if index >= 0
                              then
                                  (* We put the new element at the head of the list.
-                                    Since elements are often used together, this may well 
+                                    Since elements are often used together, this may well
                                     be a good idea. *)
                                  (Array.update(tab,hash,index::l);
                                  index)
@@ -160,7 +160,7 @@ struct
          val fullhash=UString.hashAsciiStringSlice slice
          val hash=Word.toInt(Word.andb(!mask,fullhash))
          val tab= !table
-      in 
+      in
           if hash < Array.length(tab)
           then
               let
@@ -169,11 +169,11 @@ struct
                       (* The element is not there.  Add it. *)
                          let
                              val index=insert(UString.fromAsciiStringSlice slice)
-                         in 
-                             if index >= 0 
+                         in
+                             if index >= 0
                              then
                                  (* We put the new element at the head of the list.
-                                    Since elements are often used together, this may well 
+                                    Since elements are often used together, this may well
                                     be a good idea. *)
                                  (Array.update(tab,hash,index::l);
                                  index)
@@ -213,7 +213,7 @@ struct
 
 
       fun bucketSizes()=
-      let 
+      let
          val tab= !table
       in
          List.tabulate(Array.length tab,fn i=>length(Array.sub(tab,i)))
@@ -236,8 +236,8 @@ struct
       val compare=Int.compare
    end
 
-   structure Map:>ORD_MAP where type Key.ord_key=symbol = IntBinaryMap
-   structure Set:>ORD_SET where type Key.ord_key=symbol = IntBinarySet
+   structure Map:>ORD_MAP where type Key.ord_key=symbol = IntRedBlackMap
+   structure Set:>ORD_SET where type Key.ord_key=symbol = IntRedBlackSet
 
    val equal=op=
    fun number i=i

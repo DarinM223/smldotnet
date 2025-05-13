@@ -1,1 +1,1 @@
-sml -32 @SMLload=$SMLNETPATH/bin/smlnet.x86-linux $@
+sml @SMLload=$SMLNETPATH/bin/smlnet.amd64-linux $@

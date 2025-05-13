@@ -10,9 +10,11 @@ to .NET libraries.
 Status
 ------
 
-This  project  is  now defunct  and  what  follows
-applies  to the  last  stable release  as of  2006
-which is also the state of the current tree.
+This project has been updated to compile
+and build the demos with modern 64-bit SML/NJ
+(> 2025.1, currently on the master branch only).
+In order to use the legacy 32-bit SML/NJ versions,
+use the `legacy` branch instead.
 
 This distribution only supports  the 2.0 and lower
 versions  of  the  Microsoft  .NET  Framework  and
@@ -52,6 +54,18 @@ Warning: if the SML.NET compiled versions of
 `ml-lex` and `ml-yacc` only work on files without
 Windows style line endings. So you should run
 `dos2unix` on `.lex` and `.grm` files first.
+
+To build SML.NET on Linux, first run
+`bld/buildsmlnet.sh`. Then go into the demos and
+either run it with a smlnet file like
+`bin/smlnet.sh @File` where there is a
+`File.smlnet` file in the directory, or
+`bin/smlnet.sh File` where there is a `File.sml`
+file in the directory. This should create an
+`.exe` file that can be ran with
+`mono program.exe`. In some demos, you may need
+to run `buildclient.sh` after building the
+smlnet file in order to produce an `.exe` file.
 
 Features
 --------

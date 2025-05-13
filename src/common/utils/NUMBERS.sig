@@ -32,14 +32,17 @@ sig
    val i1:int->Word8.word
    val i2:int->Word8Vector.vector
    val i4:int->Word8Vector.vector
+   val i8:int->Word8Vector.vector
 
    val isi1:int->bool
    val isi2:int->bool
    val isi4:int->bool
+   val isi8:int->bool
 
    val I1:Int32.int->Word8.word
    val I2:Int32.int->Word8Vector.vector
    val I4:Int32.int->Word8Vector.vector
+   val I8:Int64.int->Word8Vector.vector
 
    val isI1:Int32.int->bool
    val isI2:Int32.int->bool
@@ -52,10 +55,12 @@ sig
    val isu1:int->bool
    val isu2:int->bool
    val isu4:int->bool
+   val isu8:int->bool
 
    val U1:Int32.int->Word8.word
    val U2:Int32.int->Word8Vector.vector
    val U4:Int32.int->Word8Vector.vector
+   val U8:Int64.int->Word8Vector.vector
 
    val isU1:Int32.int->bool
    val isU2:Int32.int->bool
@@ -64,13 +69,17 @@ sig
    val w1:Word.word->Word8.word
    val w2:Word.word->Word8Vector.vector
    val w4:Word.word->Word8Vector.vector
+   val w8:Word.word->Word8Vector.vector
 
    val W1:Word32.word->Word8.word
    val W2:Word32.word->Word8Vector.vector
    val W4:Word32.word->Word8Vector.vector
+   val W8:Word64.word->Word8Vector.vector
 
    val Log2:Int32.int->int option
    val WLog2:Word32.word->int option
+   val Log2':Int64.int->int option
+   val WLog2':Word64.word->int option
 
 (* unresolved handles will cause Fail("Unresolved Handle!") to be
    raised. *)

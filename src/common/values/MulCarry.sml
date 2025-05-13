@@ -1,9 +1,10 @@
 (* MulCarry:MULCARRY implements multiplication by 10 and by 16 of Word32.words
    interpreted as an unsigned quantity with carry.
    *)
-structure MulCarry:>MULCARRY=
+structure MulCarry:>MULCARRY where type word = Word32.word =
 struct
    (* In each case, the carry is given first *)
+   type word = Word32.word
 
    fun mul10 (w:Word32.word)=
    let

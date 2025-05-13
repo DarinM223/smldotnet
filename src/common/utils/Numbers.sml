@@ -31,6 +31,7 @@ structure Numbers:>NUMBERS=
 struct
 (* the primitive functions are the W?, w? and the is?? ones *)
    fun W1(w:Word32.word)=Word8.fromLargeWord(Word32.toLargeWord w)
+   fun W1'(w:Word64.word)=Word8.fromLargeWord(Word64.toLargeWord w)
    fun W2(w)=Word8Vector.fromList [
       W1(Word32.>>(w,0w8)),
       W1(w)
@@ -41,6 +42,16 @@ struct
       W1(Word32.>>(w,0w8)),
       W1(w)
       ]
+   fun W8(w:Word64.word)=Word8Vector.fromList [
+      W1'(Word64.>>(w,0w56)),
+      W1'(Word64.>>(w,0w48)),
+      W1'(Word64.>>(w,0w40)),
+      W1'(Word64.>>(w,0w32)),
+      W1'(Word64.>>(w,0w24)),
+      W1'(Word64.>>(w,0w16)),
+      W1'(Word64.>>(w,0w8)),
+      W1'(w)
+   ]
 
    fun w1(w:Word.word)=Word8.fromLargeWord(Word.toLargeWord w)
    fun w2(w)=Word8Vector.fromList [
@@ -53,15 +64,25 @@ struct
       w1(Word.>>(w,0w8)),
       w1(w)
       ]
+   fun w8(w)=Word8Vector.fromList [
+      w1(Word.~>>(w,0w56)),
+      w1(Word.>>(w,0w48)),
+      w1(Word.>>(w,0w40)),
+      w1(Word.>>(w,0w32)),
+      w1(Word.>>(w,0w24)),
+      w1(Word.>>(w,0w16)),
+      w1(Word.>>(w,0w8)),
+      w1(w)
+   ]
 
    val intbits=
    let
       val ex=Fail(
-"Sorry, Numbers.sml needs rewriting to handle integers with over 32 bits"
+"Sorry, Numbers.sml needs rewriting to handle integers with over 64 bits"
          )
    in
       case Int.precision of
-         SOME i => if i>=33 then raise ex else i
+         SOME i => if i>=65 then raise ex else i
       |  NONE   => raise ex
    end
    (* we assume isi4 and isu4 are always true *)
@@ -73,7 +94,8 @@ struct
 
    fun isi1(i)=i<=127 andalso i>= ~128
    fun isi2(i)=i<=32767 andalso i>= ~32768
-   fun isi4(i:int)=true
+   fun isi4(i)=i<=2147483647 andalso i>= ~2147483648
+   fun isi8(i:int)=true
 
    fun isI1(i:Int32.int)=i<=127 andalso i>= ~128
    fun isI2(i:Int32.int)=i<=32767 andalso i>= ~32768
@@ -81,7 +103,8 @@ struct
 
    fun isu1(i)=i<=255 andalso i>=0
    fun isu2(i)=i<=65535 andalso i>=0
-   fun isu4(i:int)=true
+   fun isu4(i:int)=i<=4294967295 andalso i>=0
+   fun isu8(i:int)=true
 
    fun isU1(i:Int32.int)=i<=255 andalso i>=0
    fun isU2(i:Int32.int)=i<=65535 andalso i>=0
@@ -92,14 +115,19 @@ struct
    fun i2(i)=w2(Word.fromInt(i))
    fun i4(i)=if isi4(i) then w4(Word.fromInt(i)) else
       raise Fail "Overflow in i4"
+   fun i8(i)=if isi8(i) then w8(Word.fromInt(i)) else
+      raise Fail "Overflow in i8"
    fun u1(i)=if isu1(i) then w1(Word.fromInt(i)) else
       raise Fail "Overflow in u1"
    fun u2(i)=if isu2(i) then w2(Word.fromInt(i)) else
       raise Fail "Overflow in u2"
    fun u4(i)=if isu4(i) then w4(Word.fromInt(i)) else
       raise Fail "Overflow in u4"
+   fun u8(i)=if isu8(i) then w8(Word.fromInt(i)) else
+      raise Fail "Overflow in u4"
 
    fun fromInt32 i=Word32.fromLargeInt(Int32.toLarge i)
+   fun fromInt64 i=Word64.fromLargeInt(Int64.toLarge i)
 
    fun I1(i)=if isI1(i) then W1(fromInt32(i)) else
       raise Fail "Overflow in I1"
@@ -107,12 +135,14 @@ struct
       raise Fail "Overflow in I2"
    fun I4(i)=if isI4(i) then W4(fromInt32(i)) else
       raise Fail "Overflow in I4"
+   fun I8(i)=W8(fromInt64(i))
    fun U1(i)=if isU1(i) then W1(fromInt32(i)) else
       raise Fail "Overflow in U1"
    fun U2(i)=if isU2(i) then W2(fromInt32(i)) else
       raise Fail "Overflow in U2"
    fun U4(i)=if isU4(i) then W4(fromInt32(i)) else
       raise Fail "Overflow in U4"
+   fun U8(i)=W8(fromInt64(i))
 
    fun h1(h)=u1(h{})
    fun h2(h)=u2(h{})
@@ -132,6 +162,22 @@ struct
       else
           NONE
    end
+   fun WLog2' w=if Word64.<=(w,0w0) then NONE
+   else
+   let
+      fun nbits(0w1,s)=s
+      |   nbits(w,s)=nbits(Word64.>>(w,0w1),s+1)
+   in
+      if Word64.andb(w,Word64.-(w,0w1))=0w0
+      then
+         (* it's a power of 2.  If you think this is yucky, count yourself
+            lucky I resisted the temptation to find nbits by table lookup
+            with index w rem 37! *)
+          SOME (nbits(w,0))
+      else
+          NONE
+   end
 
    fun Log2 i=WLog2(Word32.fromLargeInt(Int32.toLarge i))
+   fun Log2' i=WLog2'(Word64.fromLargeInt(Int64.toLarge i))
 end
