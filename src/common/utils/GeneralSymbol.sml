@@ -236,8 +236,8 @@ struct
       val compare=Int.compare
    end
 
-   structure Map:>ORD_MAP where type Key.ord_key=symbol = IntRedBlackMap
-   structure Set:>ORD_SET where type Key.ord_key=symbol = IntRedBlackSet
+   structure Map:>ORD_MAP where type Key.ord_key=symbol = IntBinaryMap
+   structure Set:>ORD_SET where type Key.ord_key=symbol = IntBinarySet
 
    val equal=op=
    fun number i=i

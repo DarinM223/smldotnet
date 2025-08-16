@@ -8,8 +8,8 @@ struct
 type Var = int
 type Supply = int
 
-structure Set = IntRedBlackSet
-structure Map = IntRedBlackMap
+structure Set = IntBinarySet
+structure Map = IntBinaryMap
 
 val dummy = 0
 fun isDummy v = v=0
