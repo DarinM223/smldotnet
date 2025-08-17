@@ -1,0 +1,1 @@
+structure SysWord : WORD = LargeWord
