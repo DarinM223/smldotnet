@@ -3,7 +3,7 @@ reference mscorlib.dll, Accessibility.dll, System.Configuration.Install.dll,
   System.Drawing.dll, System.EnterpriseServices.dll,
   System.Management.dll, System.Messaging.dll,
   System.Runtime.Remoting.dll, System.Runtime.Serialization.Formatters.Soap.dll,
-  System.Security.dll, System.ServiceProcess.dll
+  System.Security.dll, System.ServiceProcess.dll, Mono.Unix.dll
 
 (* Turn off various buggy optimizations *)
 off hoistLocalFun

@@ -564,7 +564,7 @@ end (* of local open *)
 
 end (* of struct *)
 
-structure IO = struct
+structure IO : OS_IO = struct
   type iodesc = int
   val hash = Word.fromInt
   val compare = Int.compare
