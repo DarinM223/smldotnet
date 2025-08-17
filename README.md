@@ -45,7 +45,8 @@ If you want to have access to posix libraries, go to
 [Mono.Posix.NETStandard](https://www.nuget.org/packages/Mono.Posix.NETStandard/5.20.1-preview)
 and go to `Open in NuGet Package Explorer`, then in the `runtimes/` folder there are multiple
 targets. For x86-64, go into `linux-x64/lib/netstandard2.0/Mono.Posix.NETStandard.dll` and
-double click it to download it. Then move that dll file into the `v2.0-api` folder.
+double click it to download it. Then move that dll file into the `demos/posix` folder and
+then you can compile the posix example.
 
 Finally, you need to set the `SMLNETPATH`
 environment variable to the project's root

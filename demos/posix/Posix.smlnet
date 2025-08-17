@@ -1,0 +1,3 @@
+reference Mono.Posix.NETStandard.dll
+export Main
+make
