@@ -1,4 +1,4 @@
-reference Mono.Posix.NETStandard.dll
+reference Mono.Unix.dll
 signature POSIX_ERROR=POSIX_ERROR.sig,
   POSIX_FILE_SYS=POSIX_FILE_SYS.sig,
   POSIX_IO=POSIX_IO.sig,

@@ -564,6 +564,61 @@ end (* of local open *)
 
 end (* of struct *)
 
-structure IO = struct type iodesc = unit end
+structure IO = struct
+  type iodesc = int
+  val hash = Word.fromInt
+  val compare = Int.compare
+  type iodesc_kind = Word.word
+
+  structure Kind =
+    struct
+      val file = 0w1
+      val dir = 0w2
+      val symlink = 0w4
+      val tty = 0w8
+      val pipe = 0w10
+      val socket = 0w20
+      val device = 0w40
+    end
+  exception Poll
+
+  fun kind iod : iodesc_kind =
+    (* Comment this code out and replace with `raise Fail "kind: not supported"`
+       if you don't have Mono.Unix.dll or Mono.Posix.NETStandard.dll
+       and you don't want to get it from NuGet *)
+    let
+      open Mono.Unix
+      val s = UnixStream (iod, false)
+      val fileType = s.#get_FileType () (* Mangling for properties *)
+    in case fileType of
+         FileTypes.RegularFile => Kind.file
+       | FileTypes.Directory => Kind.dir
+       | FileTypes.CharacterDevice => Kind.tty
+       | FileTypes.BlockDevice => Kind.device
+       | FileTypes.SymbolicLink => Kind.symlink
+       | FileTypes.Fifo => Kind.pipe
+       | FileTypes.Socket => Kind.socket
+       | _ => raise SysErr ("kind of IO descriptor unknown",NONE)
+    end
+
+  type poll_info = {iod:iodesc,pri:bool,rd:bool,wr:bool}
+  type poll_desc = poll_info
+
+  fun pollDesc iod = SOME {iod=iod, pri=false, rd=false, wr=false}
+  fun pollToIODesc (pd: poll_desc) = #iod pd
+
+  exception Poll
+  fun pollIn ({iod, pri, wr, ...}: poll_desc) : poll_desc =
+      {iod=iod, pri=pri, rd=true, wr=wr}
+  fun pollOut ({iod, pri, rd, ...}: poll_desc) : poll_desc =
+      {iod=iod, pri=pri, rd=rd, wr=true}
+  fun pollPri ({iod, rd, wr, ...}: poll_desc) : poll_desc =
+      {iod=iod, pri=true, rd=rd, wr=wr}
+
+  fun isPri (pi:poll_info) = #pri pi
+  fun isIn (pi:poll_info) = #rd pi
+  fun isOut (pi:poll_info) = #wr pi
+  fun infoToPollDesc x = x
+end
 
 end
