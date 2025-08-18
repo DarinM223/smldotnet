@@ -617,19 +617,21 @@ structure IO : OS_IO = struct
 
   fun poll (descs: poll_desc list, timeout: Time.time option): poll_info list =
     let
+      open Mono.Unix.Native Prim (* need to open Prim for := operator *)
+      fun toInt16 (PollEvents i): Int16.int = i
+      fun toWord (i: Int16.int): word = Word.fromInt (Int16.toInt i)
       val descs = List.map (fn {iod, pri, rd, wr} =>
         let
-          fun toInt16 (Mono.Unix.Native.PollEvents i): Int16.int = i
-          val toWord : Int16.int -> Word.word = fn i => Word.fromInt (Int16.toInt i)
-          val isPri = if pri then toWord (toInt16 Mono.Unix.Native.PollEvents.POLLPRI) else 0w0
-          val isRd = if rd then toWord (toInt16 Mono.Unix.Native.PollEvents.POLLIN) else 0w0
-          val isWr = if wr then toWord (toInt16 Mono.Unix.Native.PollEvents.POLLOUT) else 0w0
+          val isPri = if pri then toWord (toInt16 PollEvents.POLLPRI) else 0w0
+          val isRd = if rd then toWord (toInt16 PollEvents.POLLIN) else 0w0
+          val isWr = if wr then toWord (toInt16 PollEvents.POLLOUT) else 0w0
           val flags = Word.toInt (Word.orb (isPri, Word.orb (isRd, isWr)))
-          val events = Mono.Unix.Native.PollEvents (Int16.fromInt flags)
-          (* val pollfd = Mono.Unix.Native.Pollfd () *)
+          val pollfd = Pollfd.null (* null works for value types *)
         in
-          (* Mono.Unix.Native.Pollfd (iod, events, Mono.Unix.Native.PollEvents 0) *)
-          ()
+          pollfd.#fd := iod;
+          pollfd.#events := PollEvents (Int16.fromInt flags);
+          pollfd.#revents := PollEvents 0;
+          pollfd
         end) descs
       val descs = Array.fromList descs
     in
