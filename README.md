@@ -52,7 +52,7 @@ then you can compile the posix example.
 If you don't want to do that, then comment out `Mono.Unix.dll` in `bin/config.smlnet`
 and go into `src/basis/clr/OS.sml` and comment out the parts
 that mention `Mono.Unix` (`OS.IO.kind` and `OS.IO.poll`)
-and replace with `raise Fail "not supported"`.
+and replace with `raise SysErr ("not supported", NONE)`.
 
 Finally, you need to set the `SMLNETPATH`
 environment variable to the project's root

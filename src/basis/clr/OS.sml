@@ -583,7 +583,7 @@ structure IO : OS_IO = struct
   exception Poll
 
   fun kind iod : iodesc_kind =
-    (* Comment this code out and replace with `raise Fail "kind: not supported"`
+    (* Comment this code out and replace with `raise SysErr ("kind: not supported", NONE)`
        if you don't have Mono.Unix.dll or Mono.Posix.NETStandard.dll
        and you don't want to get it from NuGet *)
     let
@@ -614,6 +614,27 @@ structure IO : OS_IO = struct
       {iod=iod, pri=pri, rd=rd, wr=true}
   fun pollPri ({iod, rd, wr, ...}: poll_desc) : poll_desc =
       {iod=iod, pri=true, rd=rd, wr=wr}
+
+  fun poll (descs: poll_desc list, timeout: Time.time option): poll_info list =
+    let
+      val descs = List.map (fn {iod, pri, rd, wr} =>
+        let
+          fun toInt16 (Mono.Unix.Native.PollEvents i): Int16.int = i
+          val toWord : Int16.int -> Word.word = fn i => Word.fromInt (Int16.toInt i)
+          val isPri = if pri then toWord (toInt16 Mono.Unix.Native.PollEvents.POLLPRI) else 0w0
+          val isRd = if rd then toWord (toInt16 Mono.Unix.Native.PollEvents.POLLIN) else 0w0
+          val isWr = if wr then toWord (toInt16 Mono.Unix.Native.PollEvents.POLLOUT) else 0w0
+          val flags = Word.toInt (Word.orb (isPri, Word.orb (isRd, isWr)))
+          val events = Mono.Unix.Native.PollEvents (Int16.fromInt flags)
+          (* val pollfd = Mono.Unix.Native.Pollfd () *)
+        in
+          (* Mono.Unix.Native.Pollfd (iod, events, Mono.Unix.Native.PollEvents 0) *)
+          ()
+        end) descs
+      val descs = Array.fromList descs
+    in
+      raise SysErr ("", NONE)
+    end
 
   fun isPri (pi:poll_info) = #pri pi
   fun isIn (pi:poll_info) = #rd pi
