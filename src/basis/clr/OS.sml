@@ -1,7 +1,7 @@
 (*======================================================================*)
 (* Operating system functionality					*)
 (*======================================================================*)
-structure OS :> OS where type Process.status = int =
+structure OS :> OS where type Process.status = int and type IO.iodesc = int =
 (*@TODO: restore uses of Prim.unsafeValOf *)
 struct
 
