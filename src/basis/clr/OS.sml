@@ -616,15 +616,21 @@ structure IO : OS_IO = struct
       {iod=iod, pri=true, rd=rd, wr=wr}
 
   fun poll (descs: poll_desc list, timeout: Time.time option): poll_info list =
+    (* Comment this code out and replace with `raise SysErr ("poll: not supported", NONE)`
+       if you don't have Mono.Unix.dll or Mono.Posix.NETStandard.dll
+       and you don't want to get it from NuGet *)
     let
       open Mono.Unix.Native Prim (* need to open Prim for := operator *)
       fun toInt16 (PollEvents i): Int16.int = i
       fun toWord (i: Int16.int): word = Word.fromInt (Int16.toInt i)
+      val priWord = toWord (toInt16 PollEvents.POLLPRI)
+      val rdWord = toWord (toInt16 PollEvents.POLLIN)
+      val wrWord = toWord (toInt16 PollEvents.POLLOUT)
       val descs = List.map (fn {iod, pri, rd, wr} =>
         let
-          val isPri = if pri then toWord (toInt16 PollEvents.POLLPRI) else 0w0
-          val isRd = if rd then toWord (toInt16 PollEvents.POLLIN) else 0w0
-          val isWr = if wr then toWord (toInt16 PollEvents.POLLOUT) else 0w0
+          val isPri = if pri then priWord else 0w0
+          val isRd = if rd then rdWord else 0w0
+          val isWr = if wr then wrWord else 0w0
           val flags = Word.toInt (Word.orb (isPri, Word.orb (isRd, isWr)))
           val pollfd = Pollfd.null (* null works for value types *)
         in
@@ -634,8 +640,23 @@ structure IO : OS_IO = struct
           pollfd
         end) descs
       val descs = Array.fromList descs
+      val timeout =
+        case timeout of
+          NONE => ~1
+        | SOME t => Int.fromLarge (Time.toMilliseconds t)
+      val result = Syscall.poll (SOME descs, timeout)
+      val () = if result = ~1 then raise SysErr ("Error performing poll", NONE) else ()
+      val infos = Array.foldr (fn (fd, acc) =>
+        let
+          val revents = toWord (toInt16 (!(fd.#revents)))
+          val pri = Word.andb (revents, priWord) = priWord
+          val rd = Word.andb (revents, rdWord) = rdWord
+          val wr = Word.andb (revents, wrWord) = wrWord
+        in
+          {iod = !(fd.#fd), pri = pri, rd = rd, wr = wr} :: acc
+        end) [] descs
     in
-      raise SysErr ("", NONE)
+      infos
     end
 
   fun isPri (pi:poll_info) = #pri pi
