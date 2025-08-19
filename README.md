@@ -46,8 +46,15 @@ better compatibility with the basis library, go to
 [Mono.Unix](https://www.nuget.org/packages/Mono.Unix)
 and go to `Open in NuGet Package Explorer`, then go
 into `lib/netstandard2.0/Mono.Unix.dll` and double click
-it to download it. Then move that dll file into the `v2.0-api` folder and
-then you can compile the posix example.
+it to download it. Then move that dll file into the
+`/usr/lib/mono/v2.0-api` and `/usr/lib/mono/4.0-api`
+folders. Then copy `lib/netstandard2.0/Mono.Unix.dll.config`
+into `/usr/lib/mono/4.0-api/` and
+`runtimes/<TARGET>/native/libMono.Unix.<>` into
+`/usr/lib/mono/4.0-api/runtimes/TARGET/libMono.Unix.<>`
+where `<TARGET>` is the your computer target like `linux-x64`
+for X86-64 Linux. With this you should be able to compile and run
+the `demos/posix` example.
 
 If you don't want to do that, then comment out `Mono.Unix.dll` in `bin/config.smlnet`
 and go into `src/basis/clr/OS.sml` and comment out the parts
@@ -61,6 +68,7 @@ directory and these environment variables:
 ```
 export FrameworkDir=/usr/lib/mono
 export FrameworkVersion=v2.0-api
+export MONO_PATH=/usr/lib/mono/4.0-api
 ```
 
 Warning: if the SML.NET compiled versions of

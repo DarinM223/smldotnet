@@ -23,7 +23,7 @@ sig
      val pollIn : poll_desc -> poll_desc
      val pollOut : poll_desc -> poll_desc
      val pollPri : poll_desc -> poll_desc
-     (* val poll : (poll_desc list * Time.time option) -> poll_info list *)
+     val poll : (poll_desc list * Time.time option) -> poll_info list
      val isIn : poll_info -> bool
      val isOut : poll_info -> bool
      val isPri : poll_info -> bool
