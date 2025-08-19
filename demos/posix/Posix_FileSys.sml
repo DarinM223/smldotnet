@@ -1,4 +1,4 @@
-structure Posix_FileSys = struct
+structure Posix_FileSys : POSIX_FILE_SYS = struct
   open System.IO Mono.Unix
   type dirstream = OS.FileSys.dirstream
   val opendir = OS.FileSys.openDir
@@ -21,7 +21,7 @@ structure Posix_FileSys = struct
   val stderr = 2
 
   fun iodToFD (x: OS.IO.iodesc) : file_desc option = SOME x
-  fun fdtoIOD (x: file_desc) : OS.IO.iodesc = x
+  fun fdToIOD (x: file_desc) : OS.IO.iodesc = x
   fun wordToFD (x: SysWord.word) : file_desc = SysWord.toInt x
   fun fdToWord (x: file_desc) : SysWord.word = SysWord.fromInt x
 
@@ -130,5 +130,145 @@ structure Posix_FileSys = struct
         if Mono.Unix.Native.Syscall.readlink (SOME path, SOME builder, MAXPATHLEN) = ~1
           then raise OS.SysErr ("Error in readlink", NONE)
           else Prim.unsafeValOf (builder.#ToString ())
+      end
+
+    fun chmod (path, perms: S.mode): unit =
+      if Mono.Unix.Native.Syscall.chmod (path, perms) = ~1
+        then raise OS.SysErr ("Error in chmod", NONE)
+        else ()
+    fun fchmod (desc: file_desc, perms: S.mode): unit =
+      if Mono.Unix.Native.Syscall.fchmod (desc, perms) = ~1
+        then raise OS.SysErr ("Error in fchmod", NONE)
+        else ()
+    fun chown (path: string, uid: uid, gid: gid): unit =
+      if Mono.Unix.Native.Syscall.chown (path, uid, gid) = ~1
+        then raise OS.SysErr ("Error in chown", NONE)
+        else ()
+    fun fchown (desc: file_desc, uid: uid, gid: gid): unit =
+      if Mono.Unix.Native.Syscall.fchown (desc, uid, gid) = ~1
+        then raise OS.SysErr ("Error in fchown", NONE)
+        else ()
+    fun ftruncate (desc: file_desc, pos: Position.int): unit =
+      if Mono.Unix.Native.Syscall.ftruncate (desc, pos) = ~1
+        then raise OS.SysErr ("Error in ftruncate", NONE)
+        else ()
+
+    local
+      open Mono.Unix.Native
+      fun convertName "CHOWN_RESTRICTED" = PathconfName._PC_CHOWN_RESTRICTED
+        | convertName "LINK_MAX" = PathconfName._PC_LINK_MAX
+        | convertName "MAX_CANON" = PathconfName._PC_MAX_CANON
+        | convertName "MAX_INPUT" = PathconfName._PC_MAX_INPUT
+        | convertName "NAME_MAX" = PathconfName._PC_NAME_MAX
+        | convertName "NO_TRUNC" = PathconfName._PC_NO_TRUNC
+        | convertName "PATH_MAX" = PathconfName._PC_PATH_MAX
+        | convertName "PIPE_BUF" = PathconfName._PC_PIPE_BUF
+        | convertName "VDISABLE" = PathconfName._PC_VDISABLE
+        | convertName "ASYNC_IO" = PathconfName._PC_ASYNC_IO
+        | convertName "SYNC_IO" = PathconfName._PC_SYNC_IO
+        | convertName "PRIO_IO" = PathconfName._PC_PRIO_IO
+        | convertName s = raise OS.SysErr ("Invalid pathconf name: " ^ s, NONE)
+    in
+      fun pathconf (path: string, property: string): SysWord.word option =
+        let
+          val result = Syscall.pathconf (SOME path, convertName property)
+          val Errno lastError = Stdlib.GetLastError ()
+        in
+          if result = ~1 then
+            (if lastError = 0 then NONE
+             else raise OS.SysErr ("Error with pathconf", NONE)) (* TODO convert errno into syserr code? *)
+          else SOME (SysWord.fromLargeInt result)
+        end
+      fun fpathconf (desc: file_desc, property: string): SysWord.word option =
+        let
+          val result = Syscall.fpathconf (desc, convertName property)
+          val Errno lastError = Stdlib.GetLastError ()
+        in
+          if result = ~1 then
+            (if lastError = 0 then NONE
+             else raise OS.SysErr ("Error with fpathconf", NONE)) (* TODO convert errno into syserr code? *)
+          else SOME (SysWord.fromLargeInt result)
+        end
+    end
+
+    type ino = SysWord.word
+    fun wordToIno x = x
+    fun inoToWord x = x
+
+    type dev = SysWord.word
+    fun wordToDev x = x
+    fun devToWord x = x
+
+    fun utime (path: string, NONE) =
+          if Mono.Unix.Native.Syscall.utime path = ~1
+            then raise OS.SysErr ("Error in utime", NONE)
+            else ()
+      | utime (path: string, SOME {actime, modtime}) =
+          let
+            open Mono.Unix.Native
+            val buf = ref Utimbuf.null
+            val () = (buf.#actime: Utimbuf.actime) := Time.toSeconds actime
+            val () = (buf.#modtime: Utimbuf.modtime) := Time.toSeconds modtime
+          in
+            (* Pass buf by reference address *)
+            if Mono.Unix.Native.Syscall.utime (path, &buf) = ~1
+              then raise OS.SysErr ("Error in utime", NONE)
+              else ()
+          end
+
+    structure ST = struct
+      open Mono.Unix.Native
+      type stat = Stat
+
+      fun isFileType (mode: S.mode, typ: S.mode) =
+        SysWord.andb (S.toWord mode, S.toWord FilePermissions.S_IFMT) = S.toWord typ
+      fun mode (stat: stat): S.mode = !(stat.#st_mode)
+      fun isDir (stat: stat): bool = isFileType (mode stat, FilePermissions.S_IFDIR)
+      fun isChr (stat: stat): bool = isFileType (mode stat, FilePermissions.S_IFCHR)
+      fun isBlk (stat: stat): bool = isFileType (mode stat, FilePermissions.S_IFBLK)
+      fun isReg (stat: stat): bool = isFileType (mode stat, FilePermissions.S_IFREG)
+      fun isFIFO (stat: stat): bool = isFileType (mode stat, FilePermissions.S_IFIFO)
+      fun isLink (stat: stat): bool = isFileType (mode stat, FilePermissions.S_IFLNK)
+      fun isSock (stat: stat): bool = isFileType (mode stat, FilePermissions.S_IFSOCK)
+      fun ino (stat: stat): ino = !(stat.#st_ino)
+      fun dev (stat: stat): dev = !(stat.#st_dev)
+      fun nlink (stat: stat): int = SysWord.toInt (!(stat.#st_nlink))
+      fun uid (stat: stat): uid = Word.toInt (!(stat.#st_uid))
+      fun gid (stat: stat): gid = Word.toInt (!(stat.#st_gid))
+      fun size (stat: stat): Position.int = !(stat.#st_size)
+      fun atime (stat: stat): Time.time = Time.fromSeconds (!(stat.#st_atime))
+      fun mtime (stat: stat): Time.time = Time.fromSeconds (!(stat.#st_mtime))
+      fun ctime (stat: stat): Time.time = Time.fromSeconds (!(stat.#st_ctime))
+    end
+
+    fun stat (path: string): ST.stat =
+      let
+        open Mono.Unix.Native
+        val statResult = ref Stat.null
+        val result = Syscall.stat (path, &statResult)
+      in
+        if result = ~1
+          then raise OS.SysErr ("Error in stat", NONE)
+          else !statResult
+      end
+    fun lstat (path: string): ST.stat =
+      let
+        open Mono.Unix.Native
+        val statResult = ref Stat.null
+        val result = Syscall.lstat (path, &statResult)
+      in
+        if result = ~1
+          then raise OS.SysErr ("Error in lstat", NONE)
+          else !statResult
+      end
+    fun fstat (desc: file_desc): ST.stat =
+      let
+        open Mono.Unix.Native
+        val statResult = ref Stat.null
+        val result = Syscall.fstat (desc, &statResult)
+      in
+        if result = ~1
+          then raise OS.SysErr ("Error in fstat", NONE)
+          else !statResult
       end
 end
