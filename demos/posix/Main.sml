@@ -18,6 +18,9 @@ structure Main = struct
       val () = print ("Gid: " ^ Int.toString (Posix.FileSys.ST.gid s) ^ "\n")
       val () = print ("Size: " ^ Position.toString (Posix.FileSys.ST.size s) ^ "\n")
       val () = print ("Access time: " ^ Time.toString (Posix.FileSys.ST.atime s) ^ "\n")
+      val l = Posix.ProcEnv.environ ()
+      val () = print ("Environment:\n")
+      val () = List.app (fn s => print ("Key: " ^ s ^ "\n")) l
     in
       ()
     end
