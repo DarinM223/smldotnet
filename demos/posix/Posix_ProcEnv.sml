@@ -1,4 +1,4 @@
-structure Posix_ProcEnv = struct
+structure Posix_ProcEnv: POSIX_PROC_ENV = struct
   type uid = word
   type gid = word
   (* type pid = Process.pid *)
@@ -15,7 +15,7 @@ structure Posix_ProcEnv = struct
   val getuid = Mono.Unix.Native.Syscall.getuid
   val geteuid = Mono.Unix.Native.Syscall.geteuid
   val getgid = Mono.Unix.Native.Syscall.getgid
-  val getgid = Mono.Unix.Native.Syscall.getegid
+  val getegid = Mono.Unix.Native.Syscall.getegid
   fun setuid (uid: uid): unit =
     if Mono.Unix.Native.Syscall.setuid uid = ~1
       then raise OS.SysErr ("Error in setuid", NONE)
@@ -95,6 +95,10 @@ structure Posix_ProcEnv = struct
           else List.rev acc
     in go [] iter
     end
+
+  val ctermid = fn () => raise OS.SysErr ("ctermid: not implemented yet", NONE)
+  val ttyname: file_desc -> string = valOf o Mono.Unix.Native.Syscall.ttyname
+  val isatty: file_desc -> bool = Mono.Unix.Native.Syscall.isatty
 
   local
     open Mono.Unix.Native
