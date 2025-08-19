@@ -54,10 +54,7 @@ signature POSIX_FILE_SYS = sig
         val trunc : flags
       end
 
-    datatype open_mode
-      = O_RDONLY
-      | O_WRONLY
-      | O_RDWR
+    datatype open_mode = O_RDONLY | O_WRONLY | O_RDWR
 
     val openf   : string * open_mode * O.flags -> file_desc
     val createf : string * open_mode * O.flags * S.mode

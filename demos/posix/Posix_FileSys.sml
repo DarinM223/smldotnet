@@ -36,11 +36,10 @@ structure Posix_FileSys = struct
       val sync     = OpenFlags.O_SYNC
       val trunc    = OpenFlags.O_TRUNC
 
-      type flags = mode
       fun toWord (OpenFlags i): SysWord.word = Word.toLargeWord (Word.fromInt i)
       fun fromWord (w: SysWord.word) = OpenFlags (Word.toInt (Word.fromLargeWord w))
       val all = fromWord (List.foldl SysWord.orb 0wx0 (List.map toWord [append, excl, noctty, sync, trunc]))
-      structure BF = BitFlags(type flags = flags val all = all val toWord = toWord val fromWord = fromWord)
+      structure BF = BitFlags(type flags = mode val all = all val toWord = toWord val fromWord = fromWord)
       open BF
     end
 
@@ -65,10 +64,71 @@ structure Posix_FileSys = struct
 
       val all   = FilePermissions.ALLPERMS
 
-      type flags = mode
       fun toWord (FilePermissions w): SysWord.word = Word.toLargeWord w
       fun fromWord (w: SysWord.word) = FilePermissions (Word.fromLargeWord w)
-      structure BF = BitFlags(type flags = flags val all = all val toWord = toWord val fromWord = fromWord)
+      structure BF = BitFlags(type flags = mode val all = all val toWord = toWord val fromWord = fromWord)
       open BF
     end
+
+    datatype open_mode = O_RDONLY | O_WRONLY | O_RDWR
+
+    local
+      open Mono.Unix.Native
+      fun convertMode O_RDONLY = OpenFlags.O_RDONLY
+        | convertMode O_WRONLY = OpenFlags.O_WRONLY
+        | convertMode O_RDWR = OpenFlags.O_RDWR
+    in
+      fun openf (path: string, openMode: open_mode, flags: O.flags): file_desc =
+        let val flags = O.flags [convertMode openMode, flags]
+        in Syscall.open (path, flags)
+        end
+
+      fun createf (path: string, openMode: open_mode, flags: O.flags, perms: S.mode): file_desc =
+        let val flags = O.flags [convertMode openMode, flags, OpenFlags.O_CREAT]
+        in Syscall.open (path, flags, perms)
+        end
+
+      val creat = Syscall.creat
+      val umask = Syscall.umask
+    end
+    fun link {old : string, new : string}: unit =
+      if Mono.Unix.Native.Syscall.link (old, new) = ~1
+        then raise OS.SysErr ("Error in link", NONE)
+        else ()
+    fun mkdir (t : string * S.mode): unit =
+      if Mono.Unix.Native.Syscall.mkdir t = ~1
+        then raise OS.SysErr ("Error in mkdir", NONE)
+        else ()
+    fun mkfifo (t: string * S.mode): unit =
+      if Mono.Unix.Native.Syscall.mkfifo t = ~1
+        then raise OS.SysErr ("Error in mkfifo", NONE)
+        else ()
+    fun unlink (path: string): unit =
+      if Mono.Unix.Native.Syscall.unlink path = ~1
+        then raise OS.SysErr ("Error in unlink", NONE)
+        else ()
+    fun rmdir (path: string): unit =
+      if Mono.Unix.Native.Syscall.rmdir path = ~1
+        then raise OS.SysErr ("Error in rmdir", NONE)
+        else ()
+    fun rename {old : string, new : string}: unit =
+      if Mono.Unix.Native.Syscall.rename (old, new) = ~1
+        then raise OS.SysErr ("Error in rename", NONE)
+        else ()
+    fun symlink {old : string, new : string}: unit =
+      if Mono.Unix.Native.Syscall.symlink (old, new) = ~1
+        then raise OS.SysErr ("Error in symlink", NONE)
+        else ()
+
+    (* Max path length for Windows *)
+    val MAXPATHLEN = Word.toLargeWord 0w260
+
+    fun readlink (path: string): string =
+      let
+        val builder = System.Text.StringBuilder ()
+      in
+        if Mono.Unix.Native.Syscall.readlink (SOME path, SOME builder, MAXPATHLEN) = ~1
+          then raise OS.SysErr ("Error in readlink", NONE)
+          else Prim.unsafeValOf (builder.#ToString ())
+      end
 end
