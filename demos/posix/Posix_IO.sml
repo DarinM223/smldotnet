@@ -29,10 +29,39 @@ structure Posix_IO = struct
       then raise OS.SysErr ("Error in close", NONE)
       else ()
 
-  (* val readVec : file_desc * int -> Word8Vector.vector
-  val readArr : file_desc * Word8ArraySlice.slice -> int
-  val writeVec : file_desc * Word8VectorSlice.slice -> int
-  val writeArr : file_desc * Word8ArraySlice.slice -> int *)
+  fun readArr (desc: file_desc, n: int): Word8ArraySlice.slice =
+    let
+      open Mono.Unix
+      val arr: Word8.word array = Array.array (n, 0w0)
+      val stream: UnixStream = UnixStream (desc, false)
+      val n' = stream.#Read (SOME arr, 0, n)
+    in
+      (* Errors already handled by UnixStream by throwing exceptions *)
+      Word8ArraySlice.slice (arr, 0, SOME n')
+    end
+  fun readVec (desc: file_desc, n: int): Word8Vector.vector =
+    Word8ArraySlice.vector (readArr (desc, n))
+
+  fun writeArr (desc: file_desc, buf: Word8ArraySlice.slice): int =
+    let
+      open Mono.Unix
+      val stream: UnixStream = UnixStream (desc, false)
+      val (arr, off, len) = Word8ArraySlice.base buf
+      (* TODO: Doesn't use native syscall so it blocks until full length is written *)
+      val () = stream.#Write (SOME arr, off, len)
+    in
+      len
+    end
+  fun writeVec (desc: file_desc, buf: Word8VectorSlice.slice): int =
+    let
+      open Mono.Unix
+      val stream: UnixStream = UnixStream (desc, false)
+      val (vec, off, len) = Word8VectorSlice.base buf
+      (* TODO: Doesn't use native syscall so it blocks until full length is written *)
+      val () = stream.#Write (SOME (Prim.fromVector vec), off, len)
+    in
+      len
+    end
 
   structure O = Posix_FileSys.O
 
@@ -143,38 +172,14 @@ structure Posix_IO = struct
       end
     fun flockToFlock' (flock: Flock): flock =
       let
-        fun convertLType (ltype: LockType): lock_type =
-          let
-            fun toWord (LockType l) = Word.fromInt (Int16.toInt l)
-            val ltype = toWord ltype
-            val rdlck = toWord LockType.F_RDLCK
-            val wrlck = toWord LockType.F_WRLCK
-            val unlck = toWord LockType.F_UNLCK
-          in
-            if Word.andb (ltype, rdlck) = rdlck then
-              F_RDLCK
-            else if Word.andb (ltype, wrlck) = wrlck then
-              F_WRLCK
-            else
-              F_UNLCK
-          end
-        fun convertWhence (whence: SeekFlags): whence =
-          let
-            fun toWord (SeekFlags f) = Word.fromInt (Int16.toInt f)
-            val whence = toWord whence
-            val set = toWord SeekFlags.SEEK_SET
-            val cur = toWord SeekFlags.SEEK_CUR
-            val endd = toWord SeekFlags.SEEK_END
-          in
-            if Word.andb (whence, set) = set then
-              SEEK_SET
-            else if Word.andb (whence, cur) = cur then
-              SEEK_CUR
-            else
-              SEEK_END
-          end
+        fun convertLock LockType.F_RDLCK = F_RDLCK
+          | convertLock LockType.F_WRLCK = F_WRLCK
+          | convertLock LockType.F_UNLCK = F_UNLCK
+        fun convertWhence SeekFlags.SEEK_SET = SEEK_SET
+          | convertWhence SeekFlags.SEEK_CUR = SEEK_CUR
+          | convertWhence SeekFlags.SEEK_END = SEEK_END
       in
-        { ltype = convertLType (!(flock.#l_type))
+        { ltype = convertLock (!(flock.#l_type))
         , whence = convertWhence (!(flock.#l_whence))
         , start = !(flock.#l_start)
         , len = !(flock.#l_len)
