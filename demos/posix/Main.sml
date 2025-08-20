@@ -21,6 +21,9 @@ structure Main = struct
       val l = Posix.ProcEnv.environ ()
       val () = print ("Environment:\n")
       val () = List.app (fn s => print ("Key: " ^ s ^ "\n")) l
+      val {infd, outfd} = Posix.IO.pipe ()
+      val () = print ("In: " ^ Int.toString infd ^ "\n")
+      val () = print ("Out: " ^ Int.toString outfd ^ "\n")
     in
       ()
     end
