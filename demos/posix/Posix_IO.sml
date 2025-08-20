@@ -34,33 +34,7 @@ structure Posix_IO = struct
   val writeVec : file_desc * Word8VectorSlice.slice -> int
   val writeArr : file_desc * Word8ArraySlice.slice -> int *)
 
-
-  (*
-  	public enum FcntlCommand : int {
-		// Form /usr/include/bits/fcntl.h
-		F_DUPFD      =    0, // Duplicate file descriptor.
-		F_GETFD      =    1, // Get file descriptor flags.
-		F_SETFD      =    2, // Set file descriptor flags.
-		F_GETFL      =    3, // Get file status flags.
-		F_SETFL      =    4, // Set file status flags.
-		F_GETLK      =   12, // Get record locking info. [64]
-		F_SETLK      =   13, // Set record locking info (non-blocking). [64]
-		F_SETLKW     =   14, // Set record locking info (blocking). [64]
-		F_OFD_GETLK  =   36, // Get open file description locking info.
-		F_OFD_SETLK  =   37, // Set open file description locking info (non-blocking).
-		F_OFD_SETLKW =   38, // Set open file description locking info (blocking).
-		F_SETOWN     =    8, // Set owner of socket (receiver of SIGIO).
-		F_GETOWN     =    9, // Get owner of socket (receiver of SIGIO).
-		F_SETSIG     =   10, // Set number of signal to be sent.
-		F_GETSIG     =   11, // Get number of signal to be sent.
-		F_NOCACHE    =   48, // OSX: turn data caching off/on for this fd.
-		F_SETLEASE   = 1024, // Set a lease.
-		F_GETLEASE   = 1025, // Enquire what lease is active.
-		F_NOTIFY     = 1026, // Required notifications on a directory
-		F_ADD_SEALS  = 1033, // Add seals.
-		F_GET_SEALS  = 1034, // Get seals.
-	}
-   *)
+  structure O = Posix_FileSys.O
 
   structure FD = struct
     type flags = word
@@ -98,5 +72,152 @@ structure Posix_IO = struct
       if result = ~1
         then raise OS.SysErr ("Error in setfd", NONE)
         else ()
+    end
+  fun getfl (desc: file_desc): O.flags * open_mode =
+    let
+      open Mono.Unix.Native
+      val result = Syscall.fcntl (desc, FcntlCommand.F_GETFL)
+    in
+      if result = ~1 then
+        raise OS.SysErr ("Error in getfl", NONE)
+      else
+        let
+          val rdwr = O.toWord OpenFlags.O_RDWR
+          val rdonly = O.toWord OpenFlags.O_RDONLY
+          val wronly = O.toWord OpenFlags.O_WRONLY
+          val result = OpenFlags result
+          val result' = O.toWord result
+          val openMode =
+            if SysWord.andb (result', rdwr) = rdwr then
+              O_RDWR
+            else if SysWord.andb (result', wronly) = wronly then
+              O_WRONLY
+            else
+              O_RDONLY
+        in (result, openMode)
+        end
+    end
+
+  fun setfl (desc: file_desc, Mono.Unix.Native.OpenFlags flags: O.flags): unit =
+    if Mono.Unix.Native.Syscall.fcntl (desc, Mono.Unix.Native.FcntlCommand.F_SETFL, flags) = ~1
+      then raise OS.SysErr ("Error in setfl", NONE)
+      else ()
+
+  local
+    open Mono.Unix.Native
+    fun convertWhence SEEK_SET = SeekFlags.SEEK_SET
+      | convertWhence SEEK_CUR = SeekFlags.SEEK_CUR
+      | convertWhence SEEK_END = SeekFlags.SEEK_END
+  in
+    fun lseek (desc: file_desc, pos: Position.int, flags: whence): Position.int =
+      let val result = Syscall.lseek (desc, pos, convertWhence flags)
+      in if result = ~1 then raise OS.SysErr ("Error in lseek", NONE) else result
+      end
+  end
+
+  fun fsync (desc: file_desc): unit =
+    if Mono.Unix.Native.Syscall.fsync desc = ~1
+      then raise OS.SysErr ("Error in fsync", NONE)
+      else ()
+
+  structure FLock = struct
+    open Mono.Unix.Native
+    type flock = {ltype: lock_type, whence: whence, start: Position.int, len: Position.int, pid: pid option}
+
+    fun flockToFlock {ltype: lock_type, whence: whence, start: Position.int, len: Position.int, pid: pid option}: Flock =
+      let
+        fun convertLock F_RDLCK = LockType.F_RDLCK
+          | convertLock F_WRLCK = LockType.F_WRLCK
+          | convertLock F_UNLCK = LockType.F_UNLCK
+        fun convertWhence SEEK_SET = SeekFlags.SEEK_SET
+          | convertWhence SEEK_CUR = SeekFlags.SEEK_CUR
+          | convertWhence SEEK_END = SeekFlags.SEEK_END
+        val f = ref Flock.null
+      in
+        f.#l_type := convertLock ltype;
+        f.#l_whence := convertWhence whence;
+        f.#l_start := start;
+        f.#l_len := len;
+        f.#l_pid := (case pid of NONE => 0 | SOME p => p);
+        !f
+      end
+    fun flockToFlock' (flock: Flock): flock =
+      let
+        fun convertLType (ltype: LockType): lock_type =
+          let
+            fun toWord (LockType l) = Word.fromInt (Int16.toInt l)
+            val ltype = toWord ltype
+            val rdlck = toWord LockType.F_RDLCK
+            val wrlck = toWord LockType.F_WRLCK
+            val unlck = toWord LockType.F_UNLCK
+          in
+            if Word.andb (ltype, rdlck) = rdlck then
+              F_RDLCK
+            else if Word.andb (ltype, wrlck) = wrlck then
+              F_WRLCK
+            else
+              F_UNLCK
+          end
+        fun convertWhence (whence: SeekFlags): whence =
+          let
+            fun toWord (SeekFlags f) = Word.fromInt (Int16.toInt f)
+            val whence = toWord whence
+            val set = toWord SeekFlags.SEEK_SET
+            val cur = toWord SeekFlags.SEEK_CUR
+            val endd = toWord SeekFlags.SEEK_END
+          in
+            if Word.andb (whence, set) = set then
+              SEEK_SET
+            else if Word.andb (whence, cur) = cur then
+              SEEK_CUR
+            else
+              SEEK_END
+          end
+      in
+        { ltype = convertLType (!(flock.#l_type))
+        , whence = convertWhence (!(flock.#l_whence))
+        , start = !(flock.#l_start)
+        , len = !(flock.#l_len)
+        , pid = case !(flock.#l_pid) of 0 => NONE | n => SOME n
+        }
+      end
+
+    fun flock (r: flock) = r
+    val ltype: flock -> lock_type = #ltype
+    val whence: flock -> whence = #whence
+    val start: flock -> Position.int = #start
+    val len: flock -> Position.int = #len
+    val pid: flock -> pid option = #pid
+  end
+
+  fun getlk (desc: file_desc, flock: FLock.flock): FLock.flock =
+    let
+      open Mono.Unix.Native
+      val flock = ref (FLock.flockToFlock flock)
+      val result = Syscall.fcntl (desc, FcntlCommand.F_GETLK, &flock)
+    in
+      if result = ~1
+        then raise OS.SysErr ("Error in getlk", NONE)
+        else FLock.flockToFlock' (!flock)
+    end
+  fun setlk (desc: file_desc, flock: FLock.flock): FLock.flock =
+    let
+      open Mono.Unix.Native
+      val flock = ref (FLock.flockToFlock flock)
+      val result = Syscall.fcntl (desc, FcntlCommand.F_SETLK, &flock)
+    in
+      if result = ~1
+        then raise OS.SysErr ("Error in setlk", NONE)
+        else FLock.flockToFlock' (!flock)
+    end
+  fun setlkw (desc: file_desc, flock: FLock.flock): FLock.flock =
+    let
+      open Mono.Unix.Native
+      val flock = ref (FLock.flockToFlock flock)
+      val result = Syscall.fcntl (desc, FcntlCommand.F_SETLKW, &flock)
+    in
+      if result = ~1
+        then raise OS.SysErr ("Error in setlkw", NONE)
+        else FLock.flockToFlock' (!flock)
     end
 end
