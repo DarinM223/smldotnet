@@ -12,7 +12,8 @@ signature POSIX_ERROR=POSIX_ERROR.sig,
 structure Posix=Posix.sml,
   Posix_ProcEnv=Posix_ProcEnv.sml,
   Posix_FileSys=Posix_FileSys.sml,
-  Posix_IO=Posix_IO.sml
-functor BitFlags=BitFlags.fun
+  Posix_IO=Posix_IO.sml,
+  Posix_Error=Posix_Error.sml
+functor BitFlags=BitFlags.fun, CreateWriterReader=CreateWriterReader.fun
 export Main
 make

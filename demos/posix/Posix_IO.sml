@@ -1,4 +1,4 @@
-structure Posix_IO = struct
+structure Posix_IO: POSIX_IO = struct
   type file_desc = Posix_FileSys.file_desc
   type pid = int
 
@@ -29,36 +29,84 @@ structure Posix_IO = struct
       then raise OS.SysErr ("Error in close", NONE)
       else ()
 
-  fun readArr (desc: file_desc, n: int): Word8ArraySlice.slice =
+  fun readArrWord8 (desc: file_desc, slice: Word8ArraySlice.slice): int =
     let
       open Mono.Unix
-      val arr: Word8.word array = Array.array (n, 0w0)
+      val (arr, off, len) = Word8ArraySlice.base slice
       val stream: UnixStream = UnixStream (desc, false)
-      val n' = stream.#Read (SOME arr, 0, n)
+      val n' = stream.#Read (SOME arr, off, len)
     in
       (* Errors already handled by UnixStream by throwing exceptions *)
-      Word8ArraySlice.slice (arr, 0, SOME n')
+      n'
     end
-  fun readVec (desc: file_desc, n: int): Word8Vector.vector =
-    Word8ArraySlice.vector (readArr (desc, n))
+  fun readArrChar (desc: file_desc, slice: CharArraySlice.slice): int =
+    let
+      open Mono.Unix
+      val (arr, off, len) = CharArraySlice.base slice
+      val stream: UnixStream = UnixStream (desc, false)
+      val reader = System.IO.StreamReader (stream)
+      val n' = reader.#Read (SOME arr, off, len)
+    in
+      n'
+    end
 
-  fun writeArr (desc: file_desc, buf: Word8ArraySlice.slice): int =
+  fun readVecWord8 (desc: file_desc, n: int): Word8Vector.vector =
+    let
+      val arr: Word8Array.array = Word8Array.array (n, 0w0)
+      val slice = Word8ArraySlice.full arr
+      val _ = readArrWord8 (desc, slice)
+    in
+      Word8ArraySlice.vector slice
+    end
+  fun readVecChar (desc: file_desc, n: int): string =
+    let
+      val arr: CharArray.array = CharArray.array (n, Char.chr 0)
+      val slice: CharArraySlice.slice = CharArraySlice.full arr
+      val _ = readArrChar (desc, slice)
+    in
+      System.String (SOME (Prim.fromVector (CharArraySlice.vector slice)))
+    end
+
+  fun writeArrWord8 (desc: file_desc, buf: Word8ArraySlice.slice): int =
     let
       open Mono.Unix
       val stream: UnixStream = UnixStream (desc, false)
       val (arr, off, len) = Word8ArraySlice.base buf
-      (* TODO: Doesn't use native syscall so it blocks until full length is written *)
+      (* FIXME: Uses UnixStream's method so it doesn't return the bytes written *)
       val () = stream.#Write (SOME arr, off, len)
     in
       len
     end
-  fun writeVec (desc: file_desc, buf: Word8VectorSlice.slice): int =
+  fun writeArrChar (desc: file_desc, buf: CharArraySlice.slice): int =
+    let
+      open Mono.Unix
+      val stream: UnixStream = UnixStream (desc, false)
+      val writer = System.IO.StreamWriter stream
+      val (arr, off, len) = CharArraySlice.base buf
+      (* FIXME: Uses StreamWriter's method so it doesn't return the bytes written *)
+      val () = writer.#Write (SOME arr, off, len)
+    in
+      len
+    end
+
+  fun writeVecWord8 (desc: file_desc, buf: Word8VectorSlice.slice): int =
     let
       open Mono.Unix
       val stream: UnixStream = UnixStream (desc, false)
       val (vec, off, len) = Word8VectorSlice.base buf
-      (* TODO: Doesn't use native syscall so it blocks until full length is written *)
+      (* FIXME: Uses UnixStream's method so it doesn't return the bytes written *)
       val () = stream.#Write (SOME (Prim.fromVector vec), off, len)
+    in
+      len
+    end
+  fun writeVecChar (desc: file_desc, buf: CharVectorSlice.slice): int =
+    let
+      open Mono.Unix
+      val stream: UnixStream = UnixStream (desc, false)
+      val writer = System.IO.StreamWriter (stream)
+      val (vec, off, len) = CharVectorSlice.base buf
+      (* FIXME: Uses StreamWriter's method so it doesn't return the bytes written *)
+      val () = writer.#Write (SOME (Prim.fromVector vec), off, len)
     in
       len
     end
@@ -225,4 +273,66 @@ structure Posix_IO = struct
         then raise OS.SysErr ("Error in setlkw", NONE)
         else FLock.flockToFlock' (!flock)
     end
+
+  structure BinWriter = CreateWriterReader(
+    struct
+      type reader = BinPrimIO.reader
+      type writer = BinPrimIO.writer
+      type vector = Word8Vector.vector
+      type array = Word8Array.array
+      type array_slice = Word8ArraySlice.slice
+      type vector_slice = Word8VectorSlice.slice
+      type file_desc = file_desc
+      datatype whence = datatype whence
+      structure O = O
+      structure Error = Posix_Error
+      type pos = Position.int
+      val RD = BinPrimIO.RD
+      val WR = BinPrimIO.WR
+      val close = close
+      val fdToIOD = Posix_FileSys.fdToIOD
+      val lseek = lseek
+      val readArr = readArrWord8
+      val writeArr = writeArrWord8
+      val writeVec = writeVecWord8
+      val readVec = readVecWord8
+      val setfl = setfl
+      val vectorLength = Word8Vector.length
+    end)
+
+  structure TextWriter = CreateWriterReader(
+    struct
+      type reader = TextPrimIO.reader
+      type writer = TextPrimIO.writer
+      type vector = CharVector.vector
+      type array = CharArray.array
+      type array_slice = CharArraySlice.slice
+      type vector_slice = CharVectorSlice.slice
+      type file_desc = file_desc
+      datatype whence = datatype whence
+      structure O = O
+      structure Error = Posix_Error
+      type pos = Position.int
+      val RD = TextPrimIO.RD
+      val WR = TextPrimIO.WR
+      val close = close
+      val fdToIOD = Posix_FileSys.fdToIOD
+      val lseek = lseek
+      val readArr = readArrChar
+      val writeArr = writeArrChar
+      val writeVec = writeVecChar
+      val readVec = readVecChar
+      val setfl = setfl
+      val vectorLength = CharVector.length
+    end)
+
+  val mkBinReader = BinWriter.mkReader
+  val mkBinWriter = BinWriter.mkWriter
+
+  val mkTextReader = TextWriter.mkReader
+  val mkTextWriter = TextWriter.mkWriter
+  val readVec = readVecWord8
+  val writeVec = writeVecWord8
+  val readArr = readArrWord8
+  val writeArr = writeArrWord8
 end

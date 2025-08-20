@@ -1,7 +1,7 @@
 (*======================================================================*)
 (* Operating system functionality					*)
 (*======================================================================*)
-structure OS :> OS where type Process.status = int and type IO.iodesc = int =
+structure OS :> OS where type Process.status = int and type IO.iodesc = int and type syserror = OS_SysError.syserror =
 (*@TODO: restore uses of Prim.unsafeValOf *)
 struct
 
@@ -11,29 +11,7 @@ local
   val op= = Prim.=
 in
 
-(* Use POSIX names here just for convention's sake *)
-datatype syserror = noent | acces | exist | notdir
-exception SysErr of (string * syserror option)
-
-fun errorMsg noent = "No such file or directory"
-  | errorMsg acces = "Permission denied"
-  | errorMsg exist = "File exists"
-  | errorMsg notdir = "Not a directory"
-
-fun syserror "noent" = SOME noent
-  | syserror "acces" = SOME acces
-  | syserror "exist" = SOME exist
-  | syserror "notdir" = SOME notdir
-  | syserror _ = NONE
-
-fun errorName noent = "noent"
-  | errorName acces = "acces"
-  | errorName exist = "exist"
-  | errorName notdir = "notdir"
-
-fun syserr code = raise SysErr (errorMsg code, SOME code)
-fun unknownsyserr message = raise SysErr (message, NONE)
-
+open OS_SysError
 
 (*----------------------------------------------------------------------*)
 (* Paths								*)

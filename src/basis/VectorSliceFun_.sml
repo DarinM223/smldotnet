@@ -1,4 +1,4 @@
-functor VectorSliceFun_(type elem) :> MONO_VECTOR_SLICE where type elem = elem =
+functor VectorSliceFun_(type elem) :> MONO_VECTOR_SLICE where type elem = elem and type vector = elem vector =
 struct
 
 open VectorSlice

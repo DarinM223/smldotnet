@@ -1,5 +1,5 @@
 signature POSIX_ERROR = sig
-    eqtype syserror = OS.syserror
+    type syserror = OS.syserror
 
     val toWord   : syserror -> SysWord.word
     val fromWord : SysWord.word -> syserror
