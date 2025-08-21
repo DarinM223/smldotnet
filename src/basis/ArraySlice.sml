@@ -1,8 +1,8 @@
 structure ArraySlice :> ARRAY_SLICE =
 struct
 
-local 
-  open General Option PrimUtils_.Int 
+local
+  open General Option PrimUtils_.Int
 in
 
 type 'a slice = 'a array * int * int
@@ -22,28 +22,31 @@ fun vector sl = Vector.tabulate (length sl, fn i => sub (sl, i))
 fun isEmpty ((a,i,0):'a slice) = true
   | isEmpty _ = false
 
-fun subslice ((a,i,n),j,mopt) = raise General.Fail "ArraySlice.subslice not implemented yet"
+fun subslice ((a,i,n),j,NONE) =
+      if j < 0 orelse n < j then raise Subscript else (a, i+j, n-j)
+  | subslice ((a,i,n),j,SOME k) =
+      if j < 0 orelse k < 0 orelse n < j+k then raise Subscript else (a, i+j, k)
 
-fun foldli f e (slice as (a, i, n)) = 
+fun foldli f e (slice as (a, i, n)) =
     let fun loop stop =
-	    let fun lr j res = 
+	    let fun lr j res =
 		if j < stop then lr (j+1) (f(j, Array.sub(a,j), res))
 		else res
 	    in lr i e end
     in loop (i+n) end
 
-fun foldri f e (slice as (a, i, n)) = 
+fun foldri f e (slice as (a, i, n)) =
     let fun loop start =
-	    let fun rl j res = 
+	    let fun rl j res =
 		    if j >= i then rl (j-1) (f(j, Array.sub(a,j), res))
 		    else res
 	    in rl start e end;
     in loop (i+n - 1) end
 
-fun appi f (slice as (a, i, n)) = 
-    let fun loop stop = 
-	    let	fun lr j = 
-		    if j < stop then (f(j, Array.sub(a,j)); lr (j+1)) 
+fun appi f (slice as (a, i, n)) =
+    let fun loop stop =
+	    let	fun lr j =
+		    if j < stop then (f(j, Array.sub(a,j)); lr (j+1))
 		    else ()
 	    in lr i end
     in loop (i+n) end
@@ -51,12 +54,12 @@ fun appi f (slice as (a, i, n)) =
 fun mapi (f : 'a -> 'b) (a, i, n) =
     let
       val newvec : 'a array = Prim.newarray(n)
-      fun copy j = 
+      fun copy j =
         if Int.<(j,n)
         then (Prim.arraystore(newvec, j, f(i+j, Array.sub(a,i+j))); copy (j+1))
         else Prim.toVector newvec
-    in 
-      copy 0 
+    in
+      copy 0
     end
 
 
