@@ -25,6 +25,12 @@ signature MONO_HASH_TABLE =
     val clear : 'a hash_table -> unit
 	(* remove all elements from the table *)
 
+    val insertWith  : ('a * 'a -> 'a) -> 'a hash_table -> Key.hash_key * 'a -> unit
+    val insertWithi : (Key.hash_key * 'a * 'a -> 'a)
+          -> 'a hash_table
+          -> Key.hash_key * 'a
+          -> unit
+
     val insert : 'a hash_table -> (Key.hash_key * 'a) -> unit
 	(* Insert an item.  If the key already has an item associated with it,
 	 * then the old item is discarded.
