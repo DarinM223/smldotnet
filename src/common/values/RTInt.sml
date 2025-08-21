@@ -98,11 +98,11 @@ struct
       fun W2w x=Word.fromLargeWord(Word32.toLargeWord x)
 
       fun deword f (x,y)= w2i(f(i2w x,i2w y))
-      val add=Int32.+
+      val add=deword Word32.+
       val sub=Int32.-
       fun neg x=Int32.-(0,x)
 
-      val mul=Int32.*
+      val mul=deword Word32.*
       fun x div y=
       if y=0 then NONE
       else

@@ -121,10 +121,11 @@ fun x > y  = Prim.gt(x:int,y)
 fun x <= y = Prim.=(Prim.gt(x:int,y), false)
 fun x >= y = Prim.=(Prim.lt(x:int,y), false)
 
-fun x + y = Prim.add(x:int,y)
-fun x - y = Prim.sub(x:int,y)
+(* NOTE: Integer operations should check for overflow *)
+fun x + y = Prim.add_ovf(x:int,y)
+fun x - y = Prim.sub_ovf(x:int,y)
 fun ~x    = Prim.neg(x:int)
-fun x * y = Prim.mul(x:int,y)
+fun x * y = Prim.mul_ovf(x:int,y)
 
 (* fun quot (x,y) = Prim.div(x:int,y) *)
 fun quot (x,y) = Prim.div(x:int,y)
@@ -487,9 +488,16 @@ fun fromInt i = Prim.toWord64(Prim.I42I8(i))
 
 (*@TODO: +,-,* need to avoid overflow checks and test! *)
 (*@BUG: +,-,* may raise overflow *)
-fun x + y = Prim.toWord64 (Prim.add_ovf_un(Prim.fromWord64 x, Prim.fromWord64 y))
+(* fun x + y = Prim.toWord64 (Prim.add_ovf_un(Prim.fromWord64 x, Prim.fromWord64 y))
 fun x - y = Prim.toWord64 (Prim.sub_ovf_un(Prim.fromWord64 x, Prim.fromWord64 y))
-fun x * y = Prim.toWord64 (Prim.mul_ovf_un(Prim.fromWord64 x, Prim.fromWord64 y))
+fun x * y = Prim.toWord64 (Prim.mul_ovf_un(Prim.fromWord64 x, Prim.fromWord64 y)) *)
+(* TODO: Check if this is correct or not. This looks similar to what C# does
+   in that it uses the add, sub, and mul for unchecked operations between ulongs,
+   but all the conversions between ints and words look suspicious.
+ *)
+fun x + y = Prim.toWord64 (Prim.add(Prim.fromWord64 x, Prim.fromWord64 y))
+fun x - y = Prim.toWord64 (Prim.sub(Prim.fromWord64 x, Prim.fromWord64 y))
+fun x * y = Prim.toWord64 (Prim.mul(Prim.fromWord64 x, Prim.fromWord64 y))
 
 fun orb (x, y) = Prim.toWord64(Prim.or(Prim.fromWord64 x, Prim.fromWord64 y))
 fun xorb (x, y) = Prim.toWord64(Prim.xor(Prim.fromWord64 x, Prim.fromWord64 y))

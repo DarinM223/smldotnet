@@ -58,11 +58,11 @@ struct
       fun W2w x=Word.fromLargeWord(Word64.toLargeWord x)
 
       fun deword f (x,y)= w2i(f(i2w x,i2w y))
-      val add=Int64.+
+      val add=deword Word64.+
       val sub=Int64.-
       fun neg x=Int64.-(0,x)
 
-      val mul=Int64.*
+      val mul=deword Word64.*
       fun x div y=
       if y=0 then NONE
       else
