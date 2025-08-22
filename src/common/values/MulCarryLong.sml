@@ -22,5 +22,6 @@ struct
       (carry,mul)
    end
 
-   fun mul16 w=(Word64.>>(w,0w28),Word64.<<(w,0w4))
+   (* NOTE: 0w28 was carry for 32 bit words, so 0x60 is carry for 64 bit words? *)
+   fun mul16 w=(Word64.>>(w,0w60),Word64.<<(w,0w4))
 end
