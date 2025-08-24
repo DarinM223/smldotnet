@@ -1,6 +1,6 @@
-reference System.Windows.Forms,System.Drawing,System,System.Data,System.XML
+reference System.Windows.Forms,System.Drawing,System,System.Data,System.Xml (* System.XML on Windows *)
 source .,jfp
 export Trees
-make 
+make
 
 

@@ -1,0 +1,4 @@
+reference Mono.Unix.dll
+@../../lib/posix/Posix
+export Main
+make

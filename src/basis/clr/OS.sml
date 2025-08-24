@@ -1,7 +1,7 @@
 (*======================================================================*)
 (* Operating system functionality					*)
 (*======================================================================*)
-structure OS :> OS where type Process.status = int =
+structure OS :> OS where type Process.status = int and type IO.iodesc = int and type syserror = OS_SysError.syserror =
 (*@TODO: restore uses of Prim.unsafeValOf *)
 struct
 
@@ -11,29 +11,7 @@ local
   val op= = Prim.=
 in
 
-(* Use POSIX names here just for convention's sake *)
-datatype syserror = noent | acces | exist | notdir
-exception SysErr of (string * syserror option)
-
-fun errorMsg noent = "No such file or directory"
-  | errorMsg acces = "Permission denied"
-  | errorMsg exist = "File exists"
-  | errorMsg notdir = "Not a directory"
-
-fun syserror "noent" = SOME noent
-  | syserror "acces" = SOME acces
-  | syserror "exist" = SOME exist
-  | syserror "notdir" = SOME notdir
-  | syserror _ = NONE
-
-fun errorName noent = "noent"
-  | errorName acces = "acces"
-  | errorName exist = "exist"
-  | errorName notdir = "notdir"
-
-fun syserr code = raise SysErr (errorMsg code, SOME code)
-fun unknownsyserr message = raise SysErr (message, NONE)
-
+open OS_SysError
 
 (*----------------------------------------------------------------------*)
 (* Paths								*)
@@ -564,6 +542,105 @@ end (* of local open *)
 
 end (* of struct *)
 
-structure IO = struct type iodesc = unit end
+structure IO : OS_IO = struct
+  type iodesc = int
+  val hash = Word.fromInt
+  val compare = Int.compare
+  type iodesc_kind = Word.word
+
+  structure Kind =
+    struct
+      val file = 0w1
+      val dir = 0w2
+      val symlink = 0w4
+      val tty = 0w8
+      val pipe = 0w10
+      val socket = 0w20
+      val device = 0w40
+    end
+  exception Poll
+
+  fun kind iod : iodesc_kind =
+    (* Comment this code out and replace with `raise SysErr ("kind: not supported", NONE)`
+       if you don't have Mono.Unix.dll or Mono.Posix.NETStandard.dll
+       and you don't want to get it from NuGet *)
+    let
+      open Mono.Unix
+      val s = UnixStream (iod, false)
+      val fileType = s.#get_FileType () (* Mangling for properties *)
+    in case fileType of
+         FileTypes.RegularFile => Kind.file
+       | FileTypes.Directory => Kind.dir
+       | FileTypes.CharacterDevice => Kind.tty
+       | FileTypes.BlockDevice => Kind.device
+       | FileTypes.SymbolicLink => Kind.symlink
+       | FileTypes.Fifo => Kind.pipe
+       | FileTypes.Socket => Kind.socket
+       | _ => raise SysErr ("kind of IO descriptor unknown",NONE)
+    end
+
+  type poll_info = {iod:iodesc,pri:bool,rd:bool,wr:bool}
+  type poll_desc = poll_info
+
+  fun pollDesc iod = SOME {iod=iod, pri=false, rd=false, wr=false}
+  fun pollToIODesc (pd: poll_desc) = #iod pd
+
+  exception Poll
+  fun pollIn ({iod, pri, wr, ...}: poll_desc) : poll_desc =
+      {iod=iod, pri=pri, rd=true, wr=wr}
+  fun pollOut ({iod, pri, rd, ...}: poll_desc) : poll_desc =
+      {iod=iod, pri=pri, rd=rd, wr=true}
+  fun pollPri ({iod, rd, wr, ...}: poll_desc) : poll_desc =
+      {iod=iod, pri=true, rd=rd, wr=wr}
+
+  fun poll (descs: poll_desc list, timeout: Time.time option): poll_info list =
+    (* Comment this code out and replace with `raise SysErr ("poll: not supported", NONE)`
+       if you don't have Mono.Unix.dll or Mono.Posix.NETStandard.dll
+       and you don't want to get it from NuGet *)
+    let
+      open Mono.Unix.Native Prim (* need to open Prim for := operator *)
+      fun toInt16 (PollEvents i): Int16.int = i
+      fun toWord (i: Int16.int): word = Word.fromInt (Int16.toInt i)
+      val priWord = toWord (toInt16 PollEvents.POLLPRI)
+      val rdWord = toWord (toInt16 PollEvents.POLLIN)
+      val wrWord = toWord (toInt16 PollEvents.POLLOUT)
+      val descs = List.map (fn {iod, pri, rd, wr} =>
+        let
+          val isPri = if pri then priWord else 0w0
+          val isRd = if rd then rdWord else 0w0
+          val isWr = if wr then wrWord else 0w0
+          val flags = Word.toInt (Word.orb (isPri, Word.orb (isRd, isWr)))
+          val pollfd = Pollfd.null (* null works for value types *)
+        in
+          pollfd.#fd := iod;
+          pollfd.#events := PollEvents (Int16.fromInt flags);
+          pollfd.#revents := PollEvents 0;
+          pollfd
+        end) descs
+      val descs = Array.fromList descs
+      val timeout =
+        case timeout of
+          NONE => ~1
+        | SOME t => Int.fromLarge (Time.toMilliseconds t)
+      val result = Syscall.poll (SOME descs, timeout)
+      val () = if result = ~1 then raise SysErr ("Error performing poll", NONE) else ()
+      val infos = Array.foldr (fn (fd, acc) =>
+        let
+          val revents = toWord (toInt16 (!(fd.#revents)))
+          val pri = Word.andb (revents, priWord) = priWord
+          val rd = Word.andb (revents, rdWord) = rdWord
+          val wr = Word.andb (revents, wrWord) = wrWord
+        in
+          {iod = !(fd.#fd), pri = pri, rd = rd, wr = wr} :: acc
+        end) [] descs
+    in
+      infos
+    end
+
+  fun isPri (pi:poll_info) = #pri pi
+  fun isIn (pi:poll_info) = #rd pi
+  fun isOut (pi:poll_info) = #wr pi
+  fun infoToPollDesc x = x
+end
 
 end

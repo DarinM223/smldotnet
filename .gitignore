@@ -10,3 +10,4 @@
 bin/smlnet.x86-linux
 bin/smlnet.amd64-linux
 bin/v2.0-api
+demos/posix/log.txt

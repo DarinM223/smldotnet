@@ -57,9 +57,9 @@ static void printType(Type c)
       print("&");
       printType(c.GetElementType());
     }
-    else 
+    else
     {
-      if (c.IsValueType) 
+      if (c.IsValueType)
       {
         if ((c.IsPrimitive && c != typeof(float) && c != typeof(double))
           || c.IsEnum)
@@ -89,7 +89,7 @@ static void printType(Type c)
 }
 
 static void DumpMethod(Type c, MethodInfo methi)
-{ 
+{
   Type retty = methi.ReturnType;
   ParameterInfo[] pi = methi.GetParameters();
   int n = pi.Length;
@@ -132,7 +132,7 @@ static void DumpConstructor(Type c, ConstructorInfo coni)
 {
   ParameterInfo[] pi = coni.GetParameters();
   int n = pi.Length;
-      
+
   foreach (ParameterInfo p in pi) {
     if (!Importable(p.ParameterType)) return;
   }
@@ -140,7 +140,7 @@ static void DumpConstructor(Type c, ConstructorInfo coni)
   {
     if (coni.IsPublic) print("p");
     if (coni.IsFamily) print("P");
-   
+
     print(":(");
     for (int j=0; j < n; j++)
     {
@@ -155,16 +155,16 @@ static void DumpConstructor(Type c, ConstructorInfo coni)
 static void DumpMethods(Type c)
 {
   MethodInfo[] ms = c.GetMethods(/*true */);
-	
-  for (int i=0; i < ms.Length; i++) 
+
+  for (int i=0; i < ms.Length; i++)
   {
     DumpMethod(c, ms[i]);
   }
 
-  ConstructorInfo[] cs = c.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance); 
+  ConstructorInfo[] cs = c.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
   print("!\n");
-  for (int i=0; i < cs.Length; i++) 
+  for (int i=0; i < cs.Length; i++)
   {
     DumpConstructor(c, cs[i]);
   }
@@ -173,8 +173,8 @@ static void DumpMethods(Type c)
 static void DumpFields(Type c, bool isenum)
 {
   FieldInfo[] fs = c.GetFields(/* true*/);
-	
-  for (int i=0; i < fs.Length; i++) 
+
+  for (int i=0; i < fs.Length; i++)
   {
     FieldInfo fldi = fs[i];
     Type t = fldi.FieldType;
@@ -195,8 +195,8 @@ static void DumpFields(Type c, bool isenum)
         print("=");
         printType(t);
         if (ft == typeof(char))
-             {print (System.Convert.ToUInt32((System.Char)v).ToString(NFI));}  
-        else 
+             {print (System.Convert.ToUInt32((System.Char)v).ToString(NFI));}
+        else
 	if (ft == typeof(string)) {
           if (v == null) {
 	      print ("null");
@@ -210,13 +210,18 @@ static void DumpFields(Type c, bool isenum)
 	  };
 	}
         else {
-	  if(isenum) {print (((System.IConvertible)(System.Enum)v).ToInt32(null).ToString(NFI));}  
-          else if (v is System.Double) print(((System.Double)v).ToString("R",NFI));  
-          else if (v is System.Single) print(((System.Single)v).ToString("R",NFI));  
+    // FIXME: hack that catches overflows for case of large unsigned 32 bit integer that overflows
+    try {
+	  if(isenum) {print (((System.IConvertible)(System.Enum)v).ToInt32(null).ToString(NFI));}
+          else if (v is System.Double) print(((System.Double)v).ToString("R",NFI));
+          else if (v is System.Single) print(((System.Single)v).ToString("R",NFI));
 	  else {print(v.ToString(/* NFI ?*/));};
+    } catch (System.OverflowException e) {
+      print("0");
+    }
 	}
      }
-     else 
+     else
      {
       print(":");
       printType(t);
@@ -232,19 +237,19 @@ static void DumpType(Type c)
   Type superc = c.BaseType;
   int n = cs.Length;
   Assembly a = c.Assembly;
-  
+
   if (c.IsAbstract) print("a");
   if (c.IsSealed) print("s");
-  if (c.IsInterface) print("i"); 
+  if (c.IsInterface) print("i");
   if (c.IsValueType) print("v");
   if (c.IsEnum) print("e");
   if (c.IsPublic) print("p");
-  if (superc != null) 
+  if (superc != null)
   {
     print(":");
     printType(superc);
   }
-  
+
   if (n > 0)
   {
     for (int i = 0; i < n; i++)
@@ -254,7 +259,7 @@ static void DumpType(Type c)
         printType(cs[i]);
       }
     }
-  } 
+  }
 
   print("\n");
   DumpFields(c, c.IsEnum);
@@ -265,10 +270,10 @@ static void DumpType(Type c)
 static int Run(String TypeName, String AssemblyFile, String AssemblyStamp)
 {
   Assembly a = null;
-  try {a = Assembly.LoadFrom(AssemblyFile);} 
+  try {a = Assembly.LoadFrom(AssemblyFile);}
   catch {};
 
-  if (a == null) 
+  if (a == null)
   {
     print("ERROR: Assembly ");
     print(AssemblyFile);
@@ -277,20 +282,20 @@ static int Run(String TypeName, String AssemblyFile, String AssemblyStamp)
   };
 
   Type c = a.GetType(TypeName);
-  if (c == null) 
+  if (c == null)
   {
     print("ERROR: Type ");
     print(TypeName);
     print(" not found\n");
     return -1;
   }
-  else 
+  else
   {
     printLine("getmeta v12");
     printLine(AssemblyFile);
     printLine(AssemblyStamp);
-    
-    DumpType(c); 
+
+    DumpType(c);
   }
 
   return 0;
@@ -310,16 +315,16 @@ public static int Main(String[] a)
   String TypeName = null;
   String AssemblyFile = null;
   String AssemblyStamp = null;
-  String[] args = System.Environment.GetCommandLineArgs();  
+  String[] args = System.Environment.GetCommandLineArgs();
   if (args.Length == 1 || args.Length > 5){Usage();return -1;};
   if (args.Length > 1) TypeName = args[1];
   if (args.Length > 2) AssemblyFile = args[2];
   if (args.Length > 3) AssemblyStamp = args[3];
-  if (args.Length > 4) 	{       
+  if (args.Length > 4) 	{
       try { TextWriter tmp = Console.Out;
 	    FileStream fs1 = new FileStream(args[4], FileMode.Create);
 	    StreamWriter sw1 = new StreamWriter(fs1);
-	    Console.SetOut(sw1);	
+	    Console.SetOut(sw1);
 	    int result = Run(TypeName,AssemblyFile,AssemblyStamp);
 	    sw1.Close();
 	    Console.SetOut(tmp);

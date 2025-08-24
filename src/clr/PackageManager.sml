@@ -377,7 +377,7 @@ let
         NONE => NONE
       | SOME { assemblyFile, assemblyName, name, ... } =>
         let
-	  val stamp = getAssemblyStamp assemblyFile
+          val stamp = getAssemblyStamp assemblyFile
           val filename = encodedFile name
 
           fun nofile () =
@@ -389,16 +389,15 @@ let
             else NONE
 
           and dodecode second =
-          if OS.FileSys.access(filename, [])
-          then
-            case Decoder.decodeClass (longid, filename) of
-              NONE =>
-	      (if second then NONE else nofile ())
-           | SOME {assemblyFile=assemblyFile',stamp=stamp',info} =>
-	      if assemblyFile=(PathConv.toInternal assemblyFile') andalso stamp = stamp'
-		  then SOME info
-	      else (if second then NONE else nofile ())
-          else nofile ()
+            if OS.FileSys.access(filename, [])
+            then
+              case Decoder.decodeClass (longid, filename) of
+                NONE => (if second then NONE else nofile ())
+              | SOME {assemblyFile=assemblyFile',stamp=stamp',info} =>
+                if assemblyFile=(PathConv.toInternal assemblyFile') andalso stamp = stamp'
+                  then SOME info
+                  else (if second then NONE else nofile ())
+            else nofile ()
         in
           PrintManager.process
             ("Decoding class " ^ name, Controls.get showClassDecode)
