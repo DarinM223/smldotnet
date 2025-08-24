@@ -29,26 +29,26 @@ fun subslice ((a,i,n),j,NONE) =
 
 fun foldli f e (slice as (a, i, n)) =
     let fun loop stop =
-	    let fun lr j res =
-		if j < stop then lr (j+1) (f(j, Array.sub(a,j), res))
-		else res
-	    in lr i e end
+      let fun lr j res =
+    if j < stop then lr (j+1) (f(j, Array.sub(a,j), res))
+    else res
+      in lr i e end
     in loop (i+n) end
 
 fun foldri f e (slice as (a, i, n)) =
     let fun loop start =
-	    let fun rl j res =
-		    if j >= i then rl (j-1) (f(j, Array.sub(a,j), res))
-		    else res
-	    in rl start e end;
+      let fun rl j res =
+        if j >= i then rl (j-1) (f(j, Array.sub(a,j), res))
+        else res
+      in rl start e end;
     in loop (i+n - 1) end
 
 fun appi f (slice as (a, i, n)) =
     let fun loop stop =
-	    let	fun lr j =
-		    if j < stop then (f(j, Array.sub(a,j)); lr (j+1))
-		    else ()
-	    in lr i end
+      let	fun lr j =
+        if j < stop then (f(j, Array.sub(a,j)); lr (j+1))
+        else ()
+      in lr i end
     in loop (i+n) end
 
 fun mapi (f : 'a -> 'b) (a, i, n) =
@@ -79,15 +79,15 @@ fun all (p : 'a -> bool) ((a,i,n) : 'a slice) : bool =
 fun exists (p : 'a -> bool) ((a,i,n) : 'a slice) : bool =
   let
     val stop = i+n
-	  fun go (a,j) = j < stop andalso (p (Array.sub(a,j)) orelse go (a,j+1))
+    fun go (a,j) = j < stop andalso (p (Array.sub(a,j)) orelse go (a,j+1))
   in go (a,i)
   end
 fun find (p : 'a -> bool) ((a,i,n) : 'a slice) : 'a option =
   let
     val stop = i+n
-	  fun go j =
+    fun go j =
       if j < stop then
-  	if p (Array.sub(a,j)) then SOME (Array.sub(a,j)) else go (j+1)
+    if p (Array.sub(a,j)) then SOME (Array.sub(a,j)) else go (j+1)
       else NONE
   in go i
   end
@@ -95,9 +95,9 @@ fun findi (p : int * 'a -> bool) ((a,i,n) : 'a slice) : (int * 'a) option =
   let
     val stop = i+n
     fun go j =
-	    if j < stop then
-      if p (j-i, Array.sub(a,j)) then SOME (j-i, Array.sub(a,j)) else go (j+1)
-      else NONE
+      if j < stop then
+        if p (j-i, Array.sub(a,j)) then SOME (j-i, Array.sub(a,j)) else go (j+1)
+        else NONE
   in go i
   end
 fun collate cmp ((a1,i1,n1), (a2,i2,n2)) =
@@ -122,16 +122,16 @@ fun copyVec _ = raise Fail "ArraySlice.copyVec not implemented"
 fun modifyi f (a, i, n) =
   let
     val stop = i+n
-	  fun go (a,j) =
-	    if j < stop then (Array.update(a,j,f(j-i, Array.sub(a,j))); go (a,j+1))
-	    else ()
+    fun go (a,j) =
+      if j < stop then (Array.update(a,j,f(j-i, Array.sub(a,j))); go (a,j+1))
+      else ()
   in go (a,i)
   end
 fun modify f (a, i, n) =
   let
     val stop = i+n
-	  fun go (a,j) = if j < stop then (Array.update(a,j,f(Array.sub(a,j))); go (a,j+1))
-          	       else ()
+    fun go (a,j) = if j < stop then (Array.update(a,j,f(Array.sub(a,j))); go (a,j+1))
+                   else ()
     in go (a,i)
     end
 end
