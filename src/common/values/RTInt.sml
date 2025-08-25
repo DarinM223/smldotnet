@@ -75,7 +75,7 @@ struct
    val fromString=IC.fromString
    val toString=Int32.toString
 
-   structure numops:>NUMOPS where type num=Int32.int 
+   structure numops:>NUMOPS where type num=Int32.int
       where type shiftnum=Int32.int=
    struct
       type num=Int32.int
@@ -99,15 +99,15 @@ struct
 
       fun deword f (x,y)= w2i(f(i2w x,i2w y))
       val add=deword Word32.+
-      val sub=deword Word32.-
-      fun neg x=w2i(Word32.-(0w0,i2w x))
+      val sub=Int32.-
+      fun neg x=Int32.-(0,x)
 
       val mul=deword Word32.*
       fun x div y=
       if y=0 then NONE
       else
-         (SOME(Int32.quot(x,y))) 
-         handle 
+         (SOME(Int32.quot(x,y)))
+         handle
             Div => NONE (* division by 0 *)
          |  Overflow => SOME x
             (* Overflow can only occur when
@@ -116,7 +116,7 @@ struct
                around to get ~2^32 again *)
       fun rem(x,y)=
          (SOME(Int32.rem(x,y)))
-         handle 
+         handle
             Div => NONE (* division by 0 *)
 
       val andb=deword Word32.andb
@@ -125,15 +125,15 @@ struct
 
       fun get5bits x= W2w(Word32.andb(i2w x,0wx1f))
       fun deword5 f (x,y)=w2i(f(i2w x,get5bits y))
-      val shl=deword5 Word32.<< 
+      val shl=deword5 Word32.<<
       val shr=deword5 Word32.~>>
       val ushr=deword5 Word32.>>
-    
+
       val compare=Int32.compare
       val Compare=SOME o compare
-      fun lt(a,b)=(compare(a,b)=LESS)      
+      fun lt(a,b)=(compare(a,b)=LESS)
       fun le(a,b)=(compare(a,b)<>GREATER)
-   end  
+   end
 
    exception RTInt_Overflow=numops.NumOverflow
 

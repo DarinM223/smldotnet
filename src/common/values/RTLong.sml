@@ -59,8 +59,8 @@ struct
 
       fun deword f (x,y)= w2i(f(i2w x,i2w y))
       val add=deword Word64.+
-      val sub=deword Word64.-
-      fun neg x=w2i(Word64.-(0w0,i2w x))
+      val sub=Int64.-
+      fun neg x=Int64.-(0,x)
 
       val mul=deword Word64.*
       fun x div y=
