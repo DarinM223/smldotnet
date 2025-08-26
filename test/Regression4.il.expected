@@ -101,9 +101,9 @@
 L_1:
   ldloc.0
   ret
-{.locals ([0] string /*cxmq 'PrimUtils_.prefix'*/ ,
-         [1] string /*cxmo*/ ,
-         [2] bool /*cxud*/ )}
+{.locals ([0] string /*cxwp 'PrimUtils_.prefix'*/ ,
+         [1] string /*cxwn*/ ,
+         [2] bool /*cyej*/ )}
 }
 .method public virtual instance string 'ExnMessage'() cil {
 .maxstack 2
@@ -124,8 +124,8 @@ L_1:
   stloc.0
   ldloc.0
   ret
-{.locals ([0] string /*cxmw cxmu cxmt*/ ,
-         [1] string /*cxmv*/ )}
+{.locals ([0] string /*cxwv cxwt cxws*/ ,
+         [1] string /*cxwu*/ )}
 }
 .method public virtual instance string 'ExnName'() cil {
 .maxstack 1
@@ -177,7 +177,7 @@ L_1:
   ret
 {.locals ()}
 }
-.method public static int64 'J\047'(int64 'cxtl') cil {
+.method public static int64 'J\047'(int64 'cydr') cil {
 .maxstack 1
 .zeroinit
   ldarg.0
@@ -189,7 +189,7 @@ L_1:
   ret
 {.locals ()}
 }
-.method public static int64 'I\047'(int64 'cxto') cil {
+.method public static int64 'I\047'(int64 'cydu') cil {
 .maxstack 2
 .zeroinit
   ldarg.0
@@ -202,7 +202,7 @@ L_1:
   ret
 {.locals ()}
 }
-.method public static int32 'J'(int32 'cxtr') cil {
+.method public static int32 'J'(int32 'cydx') cil {
 .maxstack 1
 .zeroinit
   ldarg.0
@@ -214,7 +214,7 @@ L_1:
   ret
 {.locals ()}
 }
-.method public static int32 'I'(int32 'cxtu') cil {
+.method public static int32 'I'(int32 'cyea') cil {
 .maxstack 2
 .zeroinit
   ldarg.0
@@ -373,15 +373,15 @@ L_1:
 
 .field static assembly string '$l'
 .field static assembly int32 '$g'
-.field static assembly class ['mscorlib']'System'.'Exception' '$cxmc'
-.field static assembly string '$cxqf'
-.field static assembly int32 '$cxql'
-.field static assembly class ['mscorlib']'System'.'IO'.'TextWriter' '$cxqo'
+.field static assembly class ['mscorlib']'System'.'Exception' '$cxwb'
+.field static assembly string '$cyae'
+.field static assembly int32 '$cyak'
+.field static assembly class ['mscorlib']'System'.'IO'.'TextWriter' '$cyan'
 .method static assembly void '.cctor'() cil {
 .maxstack 3
 .zeroinit
   newobj instance void '!'.'PrimUtils_'.'Char'.'Chr'::.ctor()
-  stsfld class ['mscorlib']'System'.'Exception' '$'.'Globals'::'$cxmc'
+  stsfld class ['mscorlib']'System'.'Exception' '$'.'Globals'::'$cxwb'
   ldc.i4.s 11
   conv.u4
   stloc.0
@@ -428,18 +428,18 @@ L_1:
   add.ovf
   pop
   call string ['mscorlib']'System'.'Environment'::'get_NewLine'()
-  stsfld string '$'.'Globals'::'$cxqf'
-  ldsfld string '$'.'Globals'::'$cxqf'
+  stsfld string '$'.'Globals'::'$cyae'
+  ldsfld string '$'.'Globals'::'$cyae'
   ldnull
   ceq
   stloc.3
   ldloc.3
   brtrue L_69
-  ldsfld string '$'.'Globals'::'$cxqf'
+  ldsfld string '$'.'Globals'::'$cyae'
   ldc.i4.s -2147483648
   callvirt instance char ['mscorlib']'System'.'String'::'get_Chars'(int32)
   stloc.s 4
-  ldsfld string '$'.'Globals'::'$cxqf'
+  ldsfld string '$'.'Globals'::'$cyae'
   callvirt instance int32 ['mscorlib']'System'.'String'::'get_Length'()
   stloc.1
   ldloc.1
@@ -456,43 +456,43 @@ L_1:
   ldloc.s 4
   ldc.i4.s -1
   ldc.i4.1
-  stsfld int32 '$'.'Globals'::'$cxql'
+  stsfld int32 '$'.'Globals'::'$cyak'
   pop
   pop
-  br _cxqk
+  br _cyaj
 L_66:
   ldc.i4.s -1
   ldc.i4.s -1
   ldc.i4.s -2147483648
-  stsfld int32 '$'.'Globals'::'$cxql'
+  stsfld int32 '$'.'Globals'::'$cyak'
   pop
   pop
-  br _cxqk
+  br _cyaj
 L_67:
   ldc.i4.2
   bne.un L_68
-  ldsfld string '$'.'Globals'::'$cxqf'
+  ldsfld string '$'.'Globals'::'$cyae'
   ldc.i4.1
   callvirt instance char ['mscorlib']'System'.'String'::'get_Chars'(int32)
   stloc.s 5
   ldloc.s 4
   ldloc.s 5
   ldc.i4.2
-  stsfld int32 '$'.'Globals'::'$cxql'
+  stsfld int32 '$'.'Globals'::'$cyak'
   pop
   pop
-  br _cxqk
+  br _cyaj
 L_68:
   ldstr " at TextIO:125.26-79"
   stsfld string '$'.'Globals'::'$l'
   ldstr "Unexpected line separator length"
   newobj instance void '!'.'General'.'Fail'::.ctor(string)
   throw
-_cxqk:
+_cyaj:
   call class ['mscorlib']'System'.'IO'.'TextReader' ['mscorlib']'System'.'Console'::'get_In'()
   pop
   call class ['mscorlib']'System'.'IO'.'TextWriter' ['mscorlib']'System'.'Console'::'get_Out'()
-  stsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cxqo'
+  stsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cyan'
   call class ['mscorlib']'System'.'IO'.'TextWriter' ['mscorlib']'System'.'Console'::'get_Error'()
   pop
   ret
@@ -502,12 +502,12 @@ L_69:
   ldstr "No line separator available"
   newobj instance void '!'.'General'.'Fail'::.ctor(string)
   throw
-{.locals ([0] unsigned int32 /*cxpz cxpw*/ ,
-         [1] int32 /*cxqj 'Real.eoffset' cxqa cxpy cxpx*/ ,
-         [2] int32 /*cxqe 'Real.large_precision' 'Real.meoffset'*/ ,
-         [3] bool /*cxtw cxuc*/ ,
+{.locals ([0] unsigned int32 /*cxzy cxzv*/ ,
+         [1] int32 /*cyai 'Real.eoffset' cxzz cxzx cxzw*/ ,
+         [2] int32 /*cyad 'Real.large_precision' 'Real.meoffset'*/ ,
+         [3] bool /*cyec cyei*/ ,
          [4] char /*'TextIO.c'*/ ,
-         [5] char /*cxtx*/ )}
+         [5] char /*cyed*/ )}
 }
 .method static assembly void '$'() cil {
 .maxstack 0
@@ -521,7 +521,7 @@ L_69:
   ret
 {.locals ()}
 }
-.method static assembly char 'PrimUtils_.chr'(int32 'cxmf') cil {
+.method static assembly char 'PrimUtils_.chr'(int32 'cxwe') cil {
 .maxstack 3
 .zeroinit
   ldarg.0
@@ -541,16 +541,16 @@ L_69:
 L_2:
   ldstr " at PrimUtils_:579.9-18"
   stsfld string '$'.'Globals'::'$l'
-  ldsfld class ['mscorlib']'System'.'Exception' '$'.'Globals'::'$cxmc'
+  ldsfld class ['mscorlib']'System'.'Exception' '$'.'Globals'::'$cxwb'
   throw
 L_3:
   ldstr " at PrimUtils_:579.9-18"
   stsfld string '$'.'Globals'::'$l'
-  ldsfld class ['mscorlib']'System'.'Exception' '$'.'Globals'::'$cxmc'
+  ldsfld class ['mscorlib']'System'.'Exception' '$'.'Globals'::'$cxwb'
   throw
-{.locals ([0] bool /*cxmh cxmg*/ )}
+{.locals ([0] bool /*cxwg cxwf*/ )}
 }
-.method static assembly string 'Utils_.implode'(class '$'.'Tuple2_a' 'cxna') cil {
+.method static assembly string 'Utils_.implode'(class '$'.'Tuple2_a' 'cxwz') cil {
 .maxstack 3
 .zeroinit
   ldarg.0
@@ -568,8 +568,8 @@ L_3:
   brtrue L_5
   newobj instance void ['mscorlib']'System'.'Text'.'StringBuilder'::.ctor()
   stloc.1
-_cxnf:
-_cxng:
+_cxxe:
+_cxxf:
   ldarg.0
   ldnull
   ceq
@@ -584,7 +584,7 @@ _cxng:
   ldarg.0
   ldfld class '$'.'Tuple2_a' '$'.'Tuple2_a'::'_2'
   starg.s 0
-  br _cxng
+  br _cxxf
 L_4:
   ldloc.1
   callvirt instance string ['mscorlib']'System'.'Text'.'StringBuilder'::'ToString'()
@@ -601,11 +601,11 @@ L_5:
 L_6:
   ldstr ""
   ret
-{.locals ([0] bool /*cxtz cxua cxub*/ ,
+{.locals ([0] bool /*cyef cyeg cyeh*/ ,
          [1] class ['mscorlib']'System'.'Text'.'StringBuilder' /*'Utils_.sb'*/ ,
-         [2] string /*cxnn cxnl*/ )}
+         [2] string /*cxxm cxxk*/ )}
 }
-.method static assembly string '$cxno'(int32 'cxnp') cil {
+.method static assembly string '$cxxn'(int32 'cxxo') cil {
 .maxstack 3
 .zeroinit
   ldarg.0
@@ -622,12 +622,12 @@ L_6:
   ldnull
   stloc.1
   starg.s 0
-  br _cxnr
+  br _cxxq
 L_13:
   ldstr "0"
   ret
-_cxnr:
-_cxns:
+_cxxq:
+_cxxr:
   ldarg.0
   ldc.i4.s -2147483648
   ceq
@@ -658,12 +658,12 @@ _cxns:
   stloc.2
   ldloc.2
   brtrue L_8
-  br _cxoa
+  br _cxxz
 L_8:
   ldarg.0
   neg
   starg.s 0
-_cxoa:
+_cxxz:
   ldarg.0
   ldc.i4.s 10
   clt
@@ -687,7 +687,7 @@ _cxoa:
   newobj instance void '$'.'Tuple2_a'::.ctor(char,class '$'.'Tuple2_a')
   stloc.1
   starg.s 0
-  br _cxns
+  br _cxxr
 L_7:
   ldc.i4 48
   ldarg.0
@@ -702,7 +702,7 @@ L_7:
   newobj instance void '$'.'Tuple2_a'::.ctor(char,class '$'.'Tuple2_a')
   stloc.1
   starg.s 0
-  br _cxns
+  br _cxxr
 L_9:
   ldarg.0
   ldc.i4.s 10
@@ -714,12 +714,12 @@ L_9:
   stloc.2
   ldloc.2
   brtrue L_10
-  br _cxns
+  br _cxxr
 L_10:
   ldarg.0
   neg
   starg.s 0
-  br _cxns
+  br _cxxr
 L_11:
   ldloc.0
   brtrue L_12
@@ -735,13 +735,13 @@ L_12:
   call string '$'.'Globals'::'Utils_.implode'(class '$'.'Tuple2_a')
   ret
 {.locals ([0] bool /*'Utils_.negative'*/ ,
-         [1] class '$'.'Tuple2_a' /*cxnt*/ ,
-         [2] bool /*cxop cxom cxoc cxnz cxnw cxnv*/ ,
-         [3] int32 /*cxnx*/ ,
-         [4] int32 /*cxod*/ ,
-         [5] char /*cxoi cxof*/ )}
+         [1] class '$'.'Tuple2_a' /*cxxs*/ ,
+         [2] bool /*cxyo cxyl cxyb cxxy cxxv cxxu*/ ,
+         [3] int32 /*cxxw*/ ,
+         [4] int32 /*cxyc*/ ,
+         [5] char /*cxyh cxye*/ )}
 }
-.method static assembly string '$cxoq'(int64 'cxor') cil {
+.method static assembly string '$cxyp'(int64 'cxyq') cil {
 .maxstack 3
 .zeroinit
   ldc.i4.s 10
@@ -761,12 +761,12 @@ L_12:
   ldnull
   stloc.2
   starg.s 0
-  br _cxou
+  br _cxyt
 L_20:
   ldstr "0"
   ret
-_cxou:
-_cxov:
+_cxyt:
+_cxyu:
   ldarg.0
   ldc.i8 0x0000000000000000
   ceq
@@ -797,12 +797,12 @@ _cxov:
   stloc.3
   ldloc.3
   brtrue L_15
-  br _cxpd
+  br _cxzc
 L_15:
   ldarg.0
   neg
   starg.s 0
-_cxpd:
+_cxzc:
   ldarg.0
   conv.ovf.i4
   stloc.s 5
@@ -832,7 +832,7 @@ _cxpd:
   newobj instance void '$'.'Tuple2_a'::.ctor(char,class '$'.'Tuple2_a')
   stloc.2
   starg.s 0
-  br _cxov
+  br _cxyu
 L_14:
   ldarg.0
   conv.ovf.i4
@@ -850,7 +850,7 @@ L_14:
   newobj instance void '$'.'Tuple2_a'::.ctor(char,class '$'.'Tuple2_a')
   stloc.2
   starg.s 0
-  br _cxov
+  br _cxyu
 L_16:
   ldarg.0
   ldloc.0
@@ -862,12 +862,12 @@ L_16:
   stloc.3
   ldloc.3
   brtrue L_17
-  br _cxov
+  br _cxyu
 L_17:
   ldarg.0
   neg
   starg.s 0
-  br _cxov
+  br _cxyu
 L_18:
   ldloc.1
   brtrue L_19
@@ -884,17 +884,17 @@ L_19:
   ret
 {.locals ([0] int64 /*'Utils_.base'*/ ,
          [1] bool /*'Utils_.negative'*/ ,
-         [2] class '$'.'Tuple2_a' /*cxow*/ ,
-         [3] bool /*cxpv cxps cxpg cxpc cxoz cxoy*/ ,
-         [4] int64 /*cxpa*/ ,
-         [5] int32 /*cxpn cxpm cxpj cxph cxpf*/ ,
-         [6] int32 /*cxpi*/ ,
-         [7] char /*cxpo cxpk*/ )}
+         [2] class '$'.'Tuple2_a' /*cxyv*/ ,
+         [3] bool /*cxzu cxzr cxzf cxzb cxyy cxyx*/ ,
+         [4] int64 /*cxyz*/ ,
+         [5] int32 /*cxzm cxzl cxzi cxzg cxze*/ ,
+         [6] int32 /*cxzh*/ ,
+         [7] char /*cxzn cxzj*/ )}
 }
-.method static assembly void 'TextIO.print'(string 'cxqq') cil {
+.method static assembly void 'TextIO.print'(string 'cyap') cil {
 .maxstack 3
 .zeroinit
-  ldsfld int32 '$'.'Globals'::'$cxql'
+  ldsfld int32 '$'.'Globals'::'$cyak'
   ldc.i4.s -2147483648
   ceq
   stloc.0
@@ -905,8 +905,8 @@ L_19:
   stloc.1
   ldc.i4.s -2147483648
   stloc.3
-_cxqx:
-_cxqy:
+_cyaw:
+_cyax:
   ldloc.3
   ldloc.1
   clt
@@ -914,7 +914,7 @@ _cxqy:
   ldloc.0
   brtrue L_26
 L_21:
-  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cxqo'
+  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cyan'
   callvirt instance void ['mscorlib']'System'.'IO'.'TextWriter'::'Flush'()
   leave L_22
 L_22:
@@ -948,7 +948,7 @@ L_28:
   ldloc.0
   brtrue L_39
 L_29:
-  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cxqo'
+  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cyan'
   ldloc.s 4
   callvirt instance void ['mscorlib']'System'.'IO'.'TextWriter'::'Write'(char)
   leave L_30
@@ -960,25 +960,25 @@ L_31:
   stloc.3
   leave L_32
 L_32:
-  br _cxqy
+  br _cyax
 L_34:
   stloc.2
-  leave _cxqt
+  leave _cyas
 L_35:
 L_33:
   ret
 .try L_31 to L_32 catch ['mscorlib']'System'.'Exception' handler L_34 to L_35
 L_37:
   stloc.2
-  leave _cxqt
+  leave _cyas
 L_38:
 L_36:
   ret
 .try L_29 to L_30 catch ['mscorlib']'System'.'Exception' handler L_37 to L_38
 L_39:
 L_40:
-  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cxqo'
-  ldsfld string '$'.'Globals'::'$cxqf'
+  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cyan'
+  ldsfld string '$'.'Globals'::'$cyae'
   callvirt instance void ['mscorlib']'System'.'IO'.'TextWriter'::'Write'(string)
   leave L_41
 L_41:
@@ -989,29 +989,29 @@ L_42:
   stloc.3
   leave L_43
 L_43:
-  br _cxqy
+  br _cyax
 L_45:
   stloc.2
-  leave _cxqt
+  leave _cyas
 L_46:
 L_44:
   ret
 .try L_42 to L_43 catch ['mscorlib']'System'.'Exception' handler L_45 to L_46
 L_48:
   stloc.2
-  leave _cxqt
+  leave _cyas
 L_49:
 L_47:
   ret
 .try L_40 to L_41 catch ['mscorlib']'System'.'Exception' handler L_48 to L_49
 L_51:
   stloc.2
-  leave _cxqt
+  leave _cyas
 L_52:
 L_50:
   ret
 .try L_27 to L_28 catch ['mscorlib']'System'.'Exception' handler L_51 to L_52
-_cxqt:
+_cyas:
   ldstr " at TextIO:87.8-91.12"
   stsfld string '$'.'Globals'::'$l'
   ldstr "TextWriter"
@@ -1022,13 +1022,13 @@ _cxqt:
   throw
 L_53:
 L_54:
-  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cxqo'
+  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cyan'
   ldarg.0
   callvirt instance void ['mscorlib']'System'.'IO'.'TextWriter'::'Write'(string)
   leave L_55
 L_55:
 L_56:
-  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cxqo'
+  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cyan'
   callvirt instance void ['mscorlib']'System'.'IO'.'TextWriter'::'Flush'()
   leave L_57
 L_57:
@@ -1061,11 +1061,11 @@ L_63:
 L_61:
   ret
 .try L_54 to L_55 catch ['mscorlib']'System'.'Exception' handler L_62 to L_63
-{.locals ([0] bool /*cxrg cxra cxqr*/ ,
+{.locals ([0] bool /*cybf cyaz cyaq*/ ,
          [1] int32 /*'CharVector.stop'*/ ,
-         [2] class ['mscorlib']'System'.'Exception' /*cxrn cxrq cxre cxrk cxrl cxrh cxri cxrb cxqu*/ ,
-         [3] int32 /*cxrm cxrj cxqz*/ ,
-         [4] char /*cxrf*/ )}
+         [2] class ['mscorlib']'System'.'Exception' /*cybm cybp cybd cybj cybk cybg cybh cyba cyat*/ ,
+         [3] int32 /*cybl cybi cyay*/ ,
+         [4] char /*cybe*/ )}
 }
 .method static assembly void 'Regression4.testInt'() cil {
 .maxstack 3
@@ -1076,98 +1076,116 @@ L_61:
   stloc.0
   ldstr bytearray (52 00 75 00 6E 00 6E 00 69 00 6E 00 67 00 20 00 49 00 0A 00 )
   call void '$'.'Globals'::'TextIO.print'(string)
+  ldc.i4.s -2147483648
+  ldc.i4.1
+  sub.ovf
+  stloc.1
   ldstr bytearray (52 00 75 00 6E 00 6E 00 69 00 6E 00 67 00 20 00 4A 00 0A 00 )
   call void '$'.'Globals'::'TextIO.print'(string)
   ldc.i4.2
   ldc.i4.s -2
   mul.ovf
-  stloc.1
+  stloc.2
   ldc.i4.1
   ldc.i4.s -1
   ceq
-  stloc.2
-  ldloc.2
+  stloc.3
+  ldloc.3
   brtrue L_64
   ldc.i4.2
-  ldc.i4.s -2
+  ldc.i4.s -1
   sub.ovf
-  stloc.3
-  ldloc.3
+  stloc.s 4
+  ldloc.s 4
   ldc.i4.s -1
   add.ovf
-  stloc.3
-  ldloc.3
-  ldc.i4.s -2
-  div
-  stloc.3
-  br _cxrx
-L_64:
+  stloc.s 4
+  ldloc.s 4
   ldc.i4.s -1
-  stloc.3
-_cxrx:
+  div
+  stloc.s 4
+  br _cybx
+L_64:
+  ldc.i4.s -2
+  stloc.s 4
+_cybx:
   ldc.i4.2
   neg
-  stloc.s 4
+  stloc.s 5
   ldloc.0
-  call string '$'.'Globals'::'$cxno'(int32)
-  stloc.s 5
+  call string '$'.'Globals'::'$cxxn'(int32)
+  stloc.s 6
   ldstr "I: "
-  ldloc.s 5
+  ldloc.s 6
   call string ['mscorlib']'System'.'String'::'Concat'(string,string)
-  stloc.s 5
-  ldloc.s 5
+  stloc.s 6
+  ldloc.s 6
   ldstr bytearray (0A 00 )
   call string ['mscorlib']'System'.'String'::'Concat'(string,string)
-  stloc.s 5
-  ldloc.s 5
-  call void '$'.'Globals'::'TextIO.print'(string)
-  ldloc.s 4
-  call string '$'.'Globals'::'$cxno'(int32)
-  stloc.s 5
-  ldstr "J: "
-  ldloc.s 5
-  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
-  stloc.s 5
-  ldloc.s 5
-  ldstr bytearray (0A 00 )
-  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
-  stloc.s 5
-  ldloc.s 5
+  stloc.s 6
+  ldloc.s 6
   call void '$'.'Globals'::'TextIO.print'(string)
   ldloc.1
-  call string '$'.'Globals'::'$cxno'(int32)
-  stloc.s 5
-  ldstr "K: "
-  ldloc.s 5
+  call string '$'.'Globals'::'$cxxn'(int32)
+  stloc.s 6
+  ldstr "I': "
+  ldloc.s 6
   call string ['mscorlib']'System'.'String'::'Concat'(string,string)
-  stloc.s 5
-  ldloc.s 5
+  stloc.s 6
+  ldloc.s 6
   ldstr bytearray (0A 00 )
   call string ['mscorlib']'System'.'String'::'Concat'(string,string)
-  stloc.s 5
-  ldloc.s 5
+  stloc.s 6
+  ldloc.s 6
   call void '$'.'Globals'::'TextIO.print'(string)
-  ldloc.3
-  call string '$'.'Globals'::'$cxno'(int32)
-  stloc.s 5
-  ldstr "L: "
   ldloc.s 5
+  call string '$'.'Globals'::'$cxxn'(int32)
+  stloc.s 6
+  ldstr "J: "
+  ldloc.s 6
   call string ['mscorlib']'System'.'String'::'Concat'(string,string)
-  stloc.s 5
-  ldloc.s 5
+  stloc.s 6
+  ldloc.s 6
   ldstr bytearray (0A 00 )
   call string ['mscorlib']'System'.'String'::'Concat'(string,string)
-  stloc.s 5
-  ldloc.s 5
+  stloc.s 6
+  ldloc.s 6
+  call void '$'.'Globals'::'TextIO.print'(string)
+  ldloc.2
+  call string '$'.'Globals'::'$cxxn'(int32)
+  stloc.s 6
+  ldstr "K: "
+  ldloc.s 6
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.s 6
+  ldloc.s 6
+  ldstr bytearray (0A 00 )
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.s 6
+  ldloc.s 6
+  call void '$'.'Globals'::'TextIO.print'(string)
+  ldloc.s 4
+  call string '$'.'Globals'::'$cxxn'(int32)
+  stloc.s 6
+  ldstr "L: "
+  ldloc.s 6
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.s 6
+  ldloc.s 6
+  ldstr bytearray (0A 00 )
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.s 6
+  ldloc.s 6
   tail.
   call void '$'.'Globals'::'TextIO.print'(string)
   ret
-{.locals ([0] int32 /*cxru*/ ,
-         [1] int32 /*'Regression4.k'*/ ,
-         [2] bool /*cxrw*/ ,
-         [3] int32 /*'Regression4.l' cxsn cxsm 'Regression4.l'*/ ,
-         [4] int32 /*cxrz*/ ,
-         [5] string /*cxsl cxsk cxsj cxsi cxsh cxsg cxsf cxse cxsd cxsc cxsb cxsa*/ )}
+{.locals ([0] int32 /*cybt*/ ,
+         [1] int32 /*'Regression4.i\047'*/ ,
+         [2] int32 /*'Regression4.k'*/ ,
+         [3] bool /*cybw*/ ,
+         [4] int32 /*'Regression4.l' cycq cycp 'Regression4.l'*/ ,
+         [5] int32 /*cybz*/ ,
+         [6] string /*cyco cycn cycm cycl cyck cycj cyci cych cycg cycf cyce cycd cycc cycb cyca*/ )}
 }
 .method static assembly void 'Regression4.testLong'() cil {
 .maxstack 3
@@ -1182,18 +1200,18 @@ _cxrx:
   stloc.0
   ldloc.0
   brtrue L_65
-  ldc.i8 0xffffffffffffffff
+  ldc.i8 0xfffffffffffffffe
   stloc.1
-  br _cxsr
+  br _cycu
 L_65:
-  ldc.i8 0xffffffffffffffff
+  ldc.i8 0xfffffffffffffffe
   stloc.1
-_cxsr:
+_cycu:
   ldc.i8 0x0000000000000002
   neg
   stloc.2
   ldc.i8 0xffffffffffffffff
-  call string '$'.'Globals'::'$cxoq'(int64)
+  call string '$'.'Globals'::'$cxyp'(int64)
   stloc.3
   ldstr "I: "
   ldloc.3
@@ -1205,8 +1223,21 @@ _cxsr:
   stloc.3
   ldloc.3
   call void '$'.'Globals'::'TextIO.print'(string)
+  ldc.i8 0xffffffffffffffff
+  call string '$'.'Globals'::'$cxyp'(int64)
+  stloc.3
+  ldstr "I': "
+  ldloc.3
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.3
+  ldloc.3
+  ldstr bytearray (0A 00 )
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.3
+  ldloc.3
+  call void '$'.'Globals'::'TextIO.print'(string)
   ldloc.2
-  call string '$'.'Globals'::'$cxoq'(int64)
+  call string '$'.'Globals'::'$cxyp'(int64)
   stloc.3
   ldstr "J: "
   ldloc.3
@@ -1219,7 +1250,7 @@ _cxsr:
   ldloc.3
   call void '$'.'Globals'::'TextIO.print'(string)
   ldc.i8 0xfffffffffffffffc
-  call string '$'.'Globals'::'$cxoq'(int64)
+  call string '$'.'Globals'::'$cxyp'(int64)
   stloc.3
   ldstr "K: "
   ldloc.3
@@ -1232,7 +1263,7 @@ _cxsr:
   ldloc.3
   call void '$'.'Globals'::'TextIO.print'(string)
   ldloc.1
-  call string '$'.'Globals'::'$cxoq'(int64)
+  call string '$'.'Globals'::'$cxyp'(int64)
   stloc.3
   ldstr "L: "
   ldloc.3
@@ -1246,10 +1277,10 @@ _cxsr:
   tail.
   call void '$'.'Globals'::'TextIO.print'(string)
   ret
-{.locals ([0] bool /*cxsq*/ ,
+{.locals ([0] bool /*cyct*/ ,
          [1] int64 /*'Regression4.l'*/ ,
-         [2] int64 /*cxst*/ ,
-         [3] string /*cxtf cxte cxtd cxtc cxtb cxta cxsz cxsy cxsx cxsw cxsv cxsu*/ )}
+         [2] int64 /*cycw*/ ,
+         [3] string /*cydl cydk cydj cydi cydh cydg cydf cyde cydd cydc cydb cyda cycz cycy cycx*/ )}
 }
 
 }
