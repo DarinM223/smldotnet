@@ -13,10 +13,10 @@
 (* --> Ts -> <T1,...,T(i-1),T(i+1),...,Tn>               [unitResult]   *)
 (*                                                                      *)
 (*     con <T1,...,T(i-1),unit,T(i+1),...,Tn>                           *)
-(* --> con <T1,...,T(i-1),T(i+1),...,Tn>                 [unitCon]      *) 
+(* --> con <T1,...,T(i-1),T(i+1),...,Tn>                 [unitCon]      *)
 (*                                                                      *)
 (*     exn_i <T1,...,T(i-1),unit,T(i+1),...,Tn>                         *)
-(* --> exn_i <T1,...,T(i-1),T(i+1),...,Tn>               [unitExCon]    *) 
+(* --> exn_i <T1,...,T(i-1),T(i+1),...,Tn>               [unitExCon]    *)
 (*                                                                      *)
 (* Polymorphism interacts with unit-removal but can be made to work if: *)
 (*   - unit removal is performed *AFTER* monomorphisation		*)
@@ -38,7 +38,7 @@ struct
 
 val stats = Controls.add false "units.stats"
 
-local 
+local
   open MILTerm MILTermOps DeunitTypes
 in
 
@@ -55,13 +55,13 @@ let
   fun transVal (env as (tyenv,kindenv)) v =
   case v of
 
-  SCon(ty, c) => 
+  SCon(ty, c) =>
   (SCon (transType ty, c), ty)
 
-| Var x => 
+| Var x =>
   let val ty =  Var.lookup(tyenv, x)
-  in	
-      if isUnit ty 
+  in
+      if isUnit ty
       then (Census.addVal(v,~1); (Tuple[],ty))
       else (v,ty)
   end
@@ -80,7 +80,7 @@ let
     (Unfold v, MILTy.unfold a)
   end
 
-| Inj(ty, i, vs, si) => 
+| Inj(ty, i, vs, si) =>
   let val (vs, _) = transVals (fn () => Controls.enabled unitCon) env vs
   in
     (Inj(transType ty, i, vs, si), ty)
@@ -92,30 +92,30 @@ let
     (As(v, transType ty), ty)
   end
 
-| ExCon(ty, vs) => 
+| ExCon(ty, vs) =>
   let val (vs,_) = transVals (fn () => Controls.enabled unitExCon) env vs
   in
     (ExCon(transType ty, vs), MILTys.topExn)
   end
 
-| Tuple vs => 
+| Tuple vs =>
   let val (vs,tys) = transVals (fn () => Controls.enabled unitProd) env vs
   in
     (Tuple vs, MILTy.prod tys)
   end
 
-| Proj(i, n, v) => 
+| Proj(i, n, v) =>
   let
     val (v,prodty) = transVal env v
     val SOME tys = MILTy.fromProdCon prodty
     val resultty = List.nth(tys, i)
   in
-    if isUnit resultty 
+    if isUnit resultty
     then (Census.addVal(v,~1); (Tuple [], resultty))
     else
     let
       val SOME tys' = MILTy.fromProdCon (transType prodty)
-      val elideUnit = 
+      val elideUnit =
         if isSome (MILTy.fromExn prodty) then Controls.enabled unitExCon
         else if isSome (MILTy.fromCon prodty) then Controls.enabled unitCon
         else Controls.enabled unitProd
@@ -125,7 +125,7 @@ let
     end
   end
 
-| TApp(v, tys) => 
+| TApp(v, tys) =>
   let
     val (v, polyty) = transVal env v
     val SOME a = MILTy.fromForall polyty
@@ -137,7 +137,7 @@ let
   let
     val (v, ty) = transVal (tyenv, addTyVars (kindenv,tyvars)) v
   in
-    (TAbs(map (fn (x,k) => (x,transKind k)) tyvars, v), 
+    (TAbs(map (fn (x,k) => (x,transKind k)) tyvars, v),
      MILTy.forall(tyvars, ty))
   end
 
@@ -145,7 +145,7 @@ let
 (* Translate a vector of values, removing unit values if elideUnit ()	*)
 (* returns true.                                                        *)
 (*----------------------------------------------------------------------*)
-and transVals elideUnit env [] = 
+and transVals elideUnit env [] =
     ([],[])
 
   | transVals elideUnit (env as (tyenv,kindenv)) (v::vs) =
@@ -153,9 +153,9 @@ and transVals elideUnit env [] =
       val (v,ty) = transVal env v
       val (vs,tys) = transVals elideUnit env vs
     in
-      (if isUnit ty andalso elideUnit () 
-       then (Census.addVal(v,~1); vs) 
-       else v::vs, ty::tys) 
+      (if isUnit ty andalso elideUnit ()
+       then (Census.addVal(v,~1); vs)
+       else v::vs, ty::tys)
     end
 
 (*----------------------------------------------------------------------*)
@@ -164,7 +164,7 @@ and transVals elideUnit env [] =
 fun transCmp (env as (tyenv, kindenv)) e =
 let
 
-  fun transTypedVars typedvars = 
+  fun transTypedVars typedvars =
     map (fn (v,ty) => (v, transType ty)) typedvars
 
   fun transBoundVars control [] [] = []
@@ -174,10 +174,10 @@ let
        else v::transBoundVars control vs tys
 
   fun transCase control tagFor tysFor ((i, (vs, ce)), result) =
-      let 
+      let
 	val j' = tagFor i
         val tys = tysFor i
-        val (ce, cty') =  
+        val (ce, cty') =
           transCmp (addBoundVars (tyenv, vs, tys), kindenv) ce
 	val vs' = transBoundVars control vs tys
       in
@@ -189,7 +189,7 @@ let
       val cases = foldr (transCase control tagFor tysFor) [] cases
     in
     case defopt of
-      NONE => 
+      NONE =>
       (cases, NONE)
 
     | SOME ce =>
@@ -214,13 +214,13 @@ in
     val (eff,restys) = MILTy.fromCmp cty
     fun default () = (App(v, vs), cty)
   in
-    if List.exists (isUnit) restys 
+    if List.exists (isUnit) restys
     andalso Controls.enabled unitResult
-    then 
+    then
       let
         val (resxs, resvs) = foldr (fn (ty, (xs,resvs)) =>
           if isUnit ty then (xs, Tuple [] :: resvs)
-          else let val (x,xv) = Census.freshBoundAnonVar 1 
+          else let val (x,xv) = Census.freshBoundAnonVar 1
                in ((x,ty)::xs, xv :: resvs) end) ([],[]) restys
       in
         (Let(App(v, vs), (resxs, Triv resvs)), cty)
@@ -235,8 +235,11 @@ in
   let
     val (vs, tys) = transVals (fn () => false) env vs
   in
-    (Special((jop, Option.map (transType) tyopt, nameopt), 
-    vs, transCmpType false cty), cty)
+    (* Eliminate case for `:=` with a unit type like `r := ()`. *)
+    case (ExtOps.toString jop, List.map MILTy.proj tys) of
+      (":=", _ :: MILTy.Prod [] :: _) => (Triv [], MILTy.noeffect [])
+    | _ => (Special((jop, Option.map (transType) tyopt, nameopt),
+                     vs, transCmpType false cty), cty)
   end
 
 (*......................................................................*)
@@ -250,7 +253,7 @@ in
   in
     (Let(e1, (transTypedVars xs, e2)), MILTy.unionCmpTypes(cty1,cty2))
   end
-    
+
 (*......................................................................*)
 (* Value bindings.                                                      *)
 (*......................................................................*)
@@ -289,7 +292,7 @@ in
 (* Sum elimination							*)
 (*......................................................................*)
 | Case(v, cases, optdefault, cty) =>
-  let 
+  let
     val (v, ty) = transVal env v
     val ty' = transType ty
     val SOME tyss = MILTy.fromSum ty
@@ -297,7 +300,7 @@ in
     fun tagFor i = i
     fun tysFor i = List.nth(tyss, i)
 
-    
+
     val (cases, optdefault) = transCases unitCon tagFor tysFor (cases, optdefault)
   in
 	(Case(v, cases, optdefault, transCmpType (Controls.enabled unitResult) cty), cty)
@@ -316,7 +319,7 @@ in
   in
     (CaseSCon(v, cases, optdefault, transCmpType (Controls.enabled unitResult) cty), cty)
   end
-      
+
 (*......................................................................*)
 (* Exception elimination						*)
 (*......................................................................*)
@@ -354,7 +357,7 @@ in
         end
     val (tabss, cty1) = foldr transHandler ([], cty2) tabss
  in
-   (TryLet(ce0, tabss, (transTypedVars vs, ce2)), 
+   (TryLet(ce0, tabss, (transTypedVars vs, ce2)),
    MILTy.unionCmpTypes(cty0,cty1))
   end
 
@@ -365,11 +368,11 @@ in
   let
     fun transMethod (name, atts, mods, tys, tyopt, optabs) =
         (name, atts, mods, map (transType) tys, Option.map (transType) tyopt,
-          case optabs of 
+          case optabs of
             NONE => NONE
           | SOME (f,(vs, ce)) =>
             let
-              val argtys = 
+              val argtys =
                 if Symbol.Set.member(mods, Id.staticSym)
                 then tys
                 else classname::tys
@@ -379,7 +382,7 @@ in
               SOME (f,(vs, ce))
             end)
 
-    fun transField (name, mods, ty, c) = 
+    fun transField (name, mods, ty, c) =
         (name, mods, transType ty, c)
 
     val (ce, cty) = transCmp env ce
@@ -387,7 +390,7 @@ in
     val fields = map transField fields
     val (eff, tys) = MILTy.fromCmp cty
   in
-    (LetClass(classname, classinfo, fields, methods, ce), 
+    (LetClass(classname, classinfo, fields, methods, ce),
       MILTy.cmp(Effect.union(eff, Effect.io), tys))
   end
 
@@ -396,13 +399,13 @@ in
 (*......................................................................*)
 | LetFun(tyvars, funkind, RecFun recbinds, e) =>
   let
-    fun makeFunType (_, _, (vs : MILTerm.TypedVar list,ce),cty) = 
+    fun makeFunType (_, _, (vs : MILTerm.TypedVar list,ce),cty) =
       MILTy.arrow(map #2 vs, cty)
     val funtys = map makeFunType recbinds
     val defntyenv = addBoundVars(tyenv, map #2 recbinds,funtys)
     val defnkindenv = addTyVars(kindenv, tyvars)
 
-    val bodytyenv = addBoundVars(tyenv, map #1 recbinds, 
+    val bodytyenv = addBoundVars(tyenv, map #1 recbinds,
       map (fn ty => MILTy.forall(tyvars, ty)) funtys)
 
     fun transDef (f, g, (xs, e), cty) =
@@ -416,15 +419,15 @@ in
         else ((x,transType  ty)::xs, e)) ([], e) xs
 
       val doUnitResult =
-        List.exists (isUnit) restys 
+        List.exists (isUnit) restys
         andalso Controls.enabled unitResult
-      val e = 
+      val e =
       if doUnitResult
-      then 
+      then
       let
         val (resxs, resvs) = foldr (fn (ty, (xs,resvs)) =>
           if isUnit ty then ((dummyBoundVar,MILTy.prod [])::xs, resvs)
-          else let val (x,xv) = Census.freshBoundAnonVar 1 
+          else let val (x,xv) = Census.freshBoundAnonVar 1
                in ((x,transType ty)::xs, xv :: resvs) end) ([],[]) restys
       in
         Let(e, (resxs, Triv resvs))
@@ -437,12 +440,12 @@ in
 
     val (recbinds,doUnitResults) = ListPair.unzip (map transDef recbinds)
     val (e, cty) = transCmp (bodytyenv, kindenv) e
-    val funkind = 
+    val funkind =
       if funkind=LocalFun andalso List.exists Gen.identity doUnitResults
-      then KnownFun 
+      then KnownFun
       else funkind
   in
-    (LetFun(map (fn (x,k) => (x,transKind k)) tyvars, 
+    (LetFun(map (fn (x,k) => (x,transKind k)) tyvars,
       funkind, RecFun recbinds, e), cty)
   end
 
@@ -453,7 +456,7 @@ in
   let
     (* First translate the body of the function *)
     val defnkindenv = addTyVars (kindenv, tyvars)
-    val (e1, cty) = 
+    val (e1, cty) =
       transCmp (addTypedVars(tyenv, xs), defnkindenv) e1
 
     val (eff, restys) = MILTy.fromCmp cty
@@ -464,31 +467,31 @@ in
       else ((x,transType ty)::xs, e)) ([], e1) xs
 
     val doUnitResult =
-      List.exists (isUnit) restys 
+      List.exists (isUnit) restys
       andalso Controls.enabled unitResult
 
-    val e1 = 
+    val e1 =
       if doUnitResult
-      then 
+      then
       let
         val (resxs, resvs) = foldr (fn (ty, (xs,resvs)) =>
           if isUnit ty then ((dummyBoundVar,MILTy.prod [])::xs, resvs)
-          else let val (x,xv) = Census.freshBoundAnonVar 1 
+          else let val (x,xv) = Census.freshBoundAnonVar 1
                in ((x,transType ty)::xs, xv :: resvs) end) ([],[]) restys
       in
         Let(e1, (resxs, Triv resvs))
       end
       else e1
 
-    val bodytyenv = addBoundVar(tyenv, f, MILTy.forall(tyvars, 
+    val bodytyenv = addBoundVar(tyenv, f, MILTy.forall(tyvars,
       MILTy.arrow(map #2 xs, cty)))
 
     val (e2, cty) = transCmp (bodytyenv, kindenv) e2
   in
-    (LetFun(map (fn (x,k) => (x,transKind k)) tyvars, 
+    (LetFun(map (fn (x,k) => (x,transKind k)) tyvars,
        if doUnitResult andalso funkind = LocalFun then KnownFun
                     else funkind, Fun (f, (xs',e1)), e2), cty)
-  end        
+  end
 
 
 end
@@ -497,7 +500,7 @@ val _ = Controls.reset ()
 val (e,cty) = transCmp (tyenv, Var.Map.empty) e
 
 in
-  Controls.printCounts PrintManager.print; 
+  Controls.printCounts PrintManager.print;
   e
 end
 
