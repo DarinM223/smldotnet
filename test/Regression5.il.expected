@@ -1,0 +1,1028 @@
+.assembly extern mscorlib {
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )
+  .ver 4:0:0:0
+}
+.assembly extern Accessibility {
+  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )
+  .ver 2:0:0:0
+}
+.assembly extern System.Configuration.Install {
+  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )
+  .ver 2:0:0:0
+}
+.assembly extern System.Data {
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )
+  .ver 2:0:0:0
+}
+.assembly extern System.DirectoryServices {
+  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )
+  .ver 2:0:0:0
+}
+.assembly extern System {
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )
+  .ver 2:0:0:0
+}
+.assembly extern System.Drawing {
+  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )
+  .ver 2:0:0:0
+}
+.assembly extern System.EnterpriseServices {
+  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )
+  .ver 2:0:0:0
+}
+.assembly extern System.Management {
+  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )
+  .ver 2:0:0:0
+}
+.assembly extern System.Messaging {
+  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )
+  .ver 2:0:0:0
+}
+.assembly extern System.Runtime.Remoting {
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )
+  .ver 2:0:0:0
+}
+.assembly extern System.Runtime.Serialization.Formatters.Soap {
+  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )
+  .ver 2:0:0:0
+}
+.assembly extern System.Security {
+  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )
+  .ver 2:0:0:0
+}
+.assembly extern System.ServiceProcess {
+  .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A )
+  .ver 2:0:0:0
+}
+.assembly extern Mono.Unix {
+  .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
+  .ver 7:1:0:0
+}
+.assembly 'Regression5'
+{ .hash algorithm 0x00008004 }
+.module 'Regression5.exe'
+
+.namespace '$' {
+.class  private sealed 'Tuple2_a' extends ['mscorlib']'System'.'Object'{
+
+.field assembly char '_1'
+.field assembly class '$'.'Tuple2_a' '_2'
+.method assembly instance void '.ctor'(char '_1',class '$'.'Tuple2_a' '_2') cil {
+.maxstack 3
+.zeroinit
+  ldarg.0
+  call instance void ['mscorlib']'System'.'Object'::'.ctor'()
+  ldarg.0
+  ldarg.1
+  stfld char '$'.'Tuple2_a'::'_1'
+  ldarg.0
+  ldarg.2
+  stfld class '$'.'Tuple2_a' '$'.'Tuple2_a'::'_2'
+  ret
+{.locals ()}
+}
+
+}
+}
+
+.namespace '$' {
+.class  private abstract 'Class_a' extends ['mscorlib']'System'.'Exception'{
+
+.field private initonly string 's'
+.method public instance void '.ctor'(string 's') cil {
+.maxstack 2
+.zeroinit
+  ldarg.0
+  ldarg.1
+  call instance instance void ['mscorlib']'System'.'Exception'::'.ctor'(string)
+  ldarg.0
+  ldarg.1
+  stfld string '$'.'Class_a'::'s'
+  ret
+{.locals ()}
+}
+.method public virtual instance string 'ToString'() cil {
+.maxstack 3
+.zeroinit
+  ldarg.0
+  callvirt instance string '$'.'Class_a'::'ExnMessage'()
+  stloc.0
+  ldsfld string '$'.'Globals'::'$l'
+  stloc.1
+  ldloc.1
+  ldnull
+  ceq
+  stloc.2
+  ldloc.2
+  brtrue L_13
+  ldloc.0
+  ldloc.1
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.0
+  ldloc.0
+  ret
+L_13:
+  ldloc.0
+  ret
+{.locals ([0] string /*cvet 'PrimUtils_.prefix'*/ ,
+         [1] string /*cver*/ ,
+         [2] bool /*cvkr*/ )}
+}
+.method public virtual instance string 'ExnMessage'() cil {
+.maxstack 2
+.zeroinit
+  ldarg.0
+  callvirt instance string '$'.'Class_a'::'ExnName'()
+  stloc.0
+  ldloc.0
+  ldstr ": "
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.0
+  ldarg.0
+  callvirt instance string ['mscorlib']'System'.'Exception'::'get_Message'()
+  stloc.1
+  ldloc.0
+  ldloc.1
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.0
+  ldloc.0
+  ret
+{.locals ([0] string /*cvez cvex cvew*/ ,
+         [1] string /*cvey*/ )}
+}
+.method public virtual instance string 'ExnName'() cil {
+.maxstack 1
+.zeroinit
+  ldstr "SML exception"
+  ret
+{.locals ()}
+}
+
+}
+}
+
+.class  public sealed 'Regression5' extends ['mscorlib']'System'.'Object'{
+
+.method public static void '.cctor'() cil {
+.maxstack 0
+.zeroinit
+  call void '$'.'Globals'::'$'()
+  ret
+{.locals ()}
+}
+.method public static void 'main'() cil {
+.maxstack 3
+.zeroinit
+.entrypoint
+  ldc.i8 0x0000000000001388
+  ldc.i8 0x0000000000001388
+  mul
+  stloc.0
+  ldloc.0
+  ldc.i8 0x0000000000001388
+  mul
+  stloc.0
+  ldc.i8 0x0000000000001388
+  ldc.i8 0x0000000000001388
+  mul
+  stloc.1
+  ldloc.1
+  ldc.i8 0x0000000000001388
+  mul
+  stloc.1
+  ldloc.0
+  ldloc.1
+  add
+  stloc.0
+  ldc.i4.s 16
+  conv.i8
+  stloc.1
+  ldloc.0
+  ldc.i8 0x0000000000000000
+  clt.un
+  stloc.2
+  ldloc.0
+  ldc.i8 0x0000000000000000
+  ceq
+  stloc.3
+  ldloc.3
+  brtrue L_12
+  ldloc.0
+  ldnull
+  stloc.s 7
+  stloc.s 10
+_cvjn:
+_cvjo:
+  ldloc.s 10
+  ldc.i8 0x0000000000000000
+  ceq
+  stloc.3
+  ldloc.3
+  brtrue L_10
+  ldloc.s 10
+  ldloc.1
+  div.un
+  pop
+  ldloc.s 10
+  ldc.i8 0x0000000000000000
+  ceq
+  stloc.3
+  ldloc.3
+  brtrue L_9
+  ldloc.s 10
+  ldloc.1
+  div.un
+  stloc.0
+  ldloc.s 10
+  ldloc.1
+  rem.un
+  stloc.s 11
+  ldloc.s 11
+  conv.ovf.i4.un
+  stloc.s 5
+  ldloc.s 5
+  ldc.i4.s 10
+  clt
+  stloc.3
+  ldloc.3
+  brtrue L_8
+  ldc.i4 65
+  ldc.i4.s 10
+  sub.ovf
+  stloc.s 5
+  ldloc.s 11
+  conv.ovf.i4.un
+  stloc.s 6
+  ldloc.s 5
+  ldloc.s 6
+  add.ovf
+  stloc.s 5
+  ldloc.s 5
+  call char '$'.'Globals'::'PrimUtils_.chr'(int32)
+  stloc.s 9
+  ldloc.0
+  ldloc.s 9
+  ldloc.s 7
+  newobj instance void '$'.'Tuple2_a'::.ctor(char,class '$'.'Tuple2_a')
+  stloc.s 7
+  stloc.s 10
+  br _cvjo
+L_8:
+  ldloc.s 11
+  conv.ovf.i4.un
+  stloc.s 5
+  ldc.i4 48
+  ldloc.s 5
+  add.ovf
+  stloc.s 5
+  ldloc.s 5
+  call char '$'.'Globals'::'PrimUtils_.chr'(int32)
+  stloc.s 9
+  ldloc.0
+  ldloc.s 9
+  ldloc.s 7
+  newobj instance void '$'.'Tuple2_a'::.ctor(char,class '$'.'Tuple2_a')
+  stloc.s 7
+  stloc.s 10
+  br _cvjo
+L_9:
+  ldloc.s 10
+  ldloc.1
+  rem.un
+  stloc.0
+  ldloc.0
+  stloc.s 10
+  br _cvjo
+L_10:
+  ldloc.2
+  brtrue L_11
+  ldloc.s 7
+  call string '$'.'Globals'::'Utils_.implode'(class '$'.'Tuple2_a')
+  stloc.s 4
+  br _cvhy
+L_11:
+  ldc.i4 126
+  ldloc.s 7
+  newobj instance void '$'.'Tuple2_a'::.ctor(char,class '$'.'Tuple2_a')
+  call string '$'.'Globals'::'Utils_.implode'(class '$'.'Tuple2_a')
+  stloc.s 4
+  br _cvhy
+L_12:
+  ldstr "0"
+  stloc.s 4
+_cvhy:
+  ldstr "Word: "
+  ldloc.s 4
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.s 4
+  ldloc.s 4
+  ldstr bytearray (0A 00 )
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.s 4
+  ldloc.s 4
+  call void '$'.'Globals'::'TextIO.print'(string)
+  ldc.i4 5000
+  ldc.i4 5000
+  mul.ovf
+  stloc.s 5
+  ldloc.s 5
+  ldc.i4 5000
+  mul.ovf
+  stloc.s 5
+  ldc.i4 5000
+  ldc.i4 5000
+  mul.ovf
+  stloc.s 6
+  ldloc.s 6
+  ldc.i4 5000
+  mul.ovf
+  stloc.s 6
+  ldloc.s 5
+  ldloc.s 6
+  add.ovf
+  stloc.s 5
+  ldloc.s 5
+  ldc.i4.s -2147483648
+  clt
+  stloc.2
+  ldloc.s 5
+  ldc.i4.s -2147483648
+  ceq
+  stloc.3
+  ldloc.3
+  brtrue L_7
+  ldloc.s 5
+  ldnull
+  stloc.s 7
+  stloc.s 5
+_cvin:
+_cvio:
+  ldloc.s 5
+  ldc.i4.s -2147483648
+  ceq
+  stloc.3
+  ldloc.3
+  brtrue L_5
+  ldloc.s 5
+  ldc.i4.s 10
+  div
+  pop
+  ldloc.s 5
+  ldc.i4.s -2147483648
+  ceq
+  stloc.3
+  ldloc.3
+  brtrue L_3
+  ldloc.s 5
+  ldc.i4.s 10
+  div
+  stloc.s 6
+  ldloc.s 5
+  ldc.i4.s 10
+  rem
+  stloc.s 5
+  ldloc.s 5
+  ldc.i4.s -2147483648
+  clt
+  stloc.3
+  ldloc.3
+  brtrue L_2
+  br _cviw
+L_2:
+  ldloc.s 5
+  neg
+  stloc.s 5
+_cviw:
+  ldloc.s 5
+  ldc.i4.s 10
+  clt
+  stloc.3
+  ldloc.3
+  brtrue L_1
+  ldc.i4 65
+  ldc.i4.s 10
+  sub.ovf
+  stloc.s 8
+  ldloc.s 8
+  ldloc.s 5
+  add.ovf
+  stloc.s 5
+  ldloc.s 5
+  call char '$'.'Globals'::'PrimUtils_.chr'(int32)
+  stloc.s 9
+  ldloc.s 6
+  ldloc.s 9
+  ldloc.s 7
+  newobj instance void '$'.'Tuple2_a'::.ctor(char,class '$'.'Tuple2_a')
+  stloc.s 7
+  stloc.s 5
+  br _cvio
+L_1:
+  ldc.i4 48
+  ldloc.s 5
+  add.ovf
+  stloc.s 5
+  ldloc.s 5
+  call char '$'.'Globals'::'PrimUtils_.chr'(int32)
+  stloc.s 9
+  ldloc.s 6
+  ldloc.s 9
+  ldloc.s 7
+  newobj instance void '$'.'Tuple2_a'::.ctor(char,class '$'.'Tuple2_a')
+  stloc.s 7
+  stloc.s 5
+  br _cvio
+L_3:
+  ldloc.s 5
+  ldc.i4.s 10
+  rem
+  stloc.s 5
+  ldloc.s 5
+  ldc.i4.s -2147483648
+  clt
+  stloc.3
+  ldloc.3
+  brtrue L_4
+  br _cvio
+L_4:
+  ldloc.s 5
+  neg
+  stloc.s 5
+  br _cvio
+L_5:
+  ldloc.2
+  brtrue L_6
+  ldloc.s 7
+  call string '$'.'Globals'::'Utils_.implode'(class '$'.'Tuple2_a')
+  stloc.s 4
+  br _cvij
+L_6:
+  ldc.i4 126
+  ldloc.s 7
+  newobj instance void '$'.'Tuple2_a'::.ctor(char,class '$'.'Tuple2_a')
+  call string '$'.'Globals'::'Utils_.implode'(class '$'.'Tuple2_a')
+  stloc.s 4
+  br _cvij
+L_7:
+  ldstr "0"
+  stloc.s 4
+_cvij:
+  ldstr "Int: "
+  ldloc.s 4
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.s 4
+  ldloc.s 4
+  ldstr bytearray (0A 00 )
+  call string ['mscorlib']'System'.'String'::'Concat'(string,string)
+  stloc.s 4
+  ldloc.s 4
+  tail.
+  call void '$'.'Globals'::'TextIO.print'(string)
+  ret
+{.locals ([0] int64 /*cvkg cvjt cvhu cvhr cvhq*/ ,
+         [1] int64 /*cvhv cvht cvhs*/ ,
+         [2] bool /*'Utils_.negative' 'Utils_.negative'*/ ,
+         [3] bool /*cvjw cvjs cvjr cvji cviy cviv cvis cvir cvii cvhx*/ ,
+         [4] string /*cvkj cvkh cvjm cvjk cvim cvil cvik cvib cvia cvhz*/ ,
+         [5] int32 /*cvkd cvkc cvjz cvjx cvjv cvjj cvjh cvjg cvjd cvja cvix cviu cviq 'Regression5.i\047' cvid cvic*/ ,
+         [6] int32 /*cvjy cvit cvif cvie*/ ,
+         [7] class '$'.'Tuple2_a' /*cvjp cvip*/ ,
+         [8] int32 /*cviz*/ ,
+         [9] char /*cvke cvka cvje cvjb*/ ,
+         [10] unsigned int64 /*cvjq*/ ,
+         [11] int64 /*cvju*/ )}
+}
+
+}
+
+.namespace '$' {
+.class  private 'Fun' extends ['mscorlib']'System'.'Object'{
+
+.method assembly instance void '.ctor'() cil {
+.maxstack 2
+.zeroinit
+  ldarg.0
+  call instance void ['mscorlib']'System'.'Object'::'.ctor'()
+  ret
+{.locals ()}
+}
+
+}
+}
+
+.namespace '$' {
+.class  private sealed 'Tuple3_a' extends ['mscorlib']'System'.'Object'{
+
+.field assembly string '_1'
+.field assembly class ['mscorlib']'System'.'Exception' '_2'
+.field assembly string '_3'
+.method assembly instance void '.ctor'(string '_1',class ['mscorlib']'System'.'Exception' '_2',string '_3') cil {
+.maxstack 4
+.zeroinit
+  ldarg.0
+  call instance void ['mscorlib']'System'.'Object'::'.ctor'()
+  ldarg.0
+  ldarg.1
+  stfld string '$'.'Tuple3_a'::'_1'
+  ldarg.0
+  ldarg.2
+  stfld class ['mscorlib']'System'.'Exception' '$'.'Tuple3_a'::'_2'
+  ldarg.0
+  ldarg.3
+  stfld string '$'.'Tuple3_a'::'_3'
+  ret
+{.locals ()}
+}
+
+}
+}
+
+.namespace '!'.'IO' {
+.class  private sealed 'Io' extends '$'.'Class_a'{
+
+.field assembly class '$'.'Tuple3_a' '_1'
+.method assembly instance void '.ctor'(class '$'.'Tuple3_a' '') cil {
+.maxstack 3
+.zeroinit
+  ldarg.0
+  ldnull
+  call instance void '$'.'Class_a'::'.ctor'(string)
+  ldarg.0
+  ldarg.1
+  stfld class '$'.'Tuple3_a' '!'.'IO'.'Io'::'_1'
+  ret
+{.locals ()}
+}
+.method public virtual instance string 'ExnName'() cil {
+.maxstack 3
+.zeroinit
+  ldstr "IO.Io"
+  ret
+{.locals ()}
+}
+
+}
+}
+
+.namespace '!'.'PrimUtils_'.'Char' {
+.class  private sealed 'Chr' extends '$'.'Class_a'{
+
+.method assembly instance void '.ctor'() cil {
+.maxstack 3
+.zeroinit
+  ldarg.0
+  ldnull
+  call instance void '$'.'Class_a'::'.ctor'(string)
+  ret
+{.locals ()}
+}
+.method public virtual instance string 'ExnName'() cil {
+.maxstack 3
+.zeroinit
+  ldstr "PrimUtils_.Char.Chr"
+  ret
+{.locals ()}
+}
+
+}
+}
+
+.namespace '!'.'General' {
+.class  private sealed 'Fail' extends '$'.'Class_a'{
+
+.method assembly instance void '.ctor'(string '') cil {
+.maxstack 3
+.zeroinit
+  ldarg.0
+  ldarg.1
+  call instance void '$'.'Class_a'::'.ctor'(string)
+  ret
+{.locals ()}
+}
+.method public virtual instance string 'ExnName'() cil {
+.maxstack 3
+.zeroinit
+  ldstr "General.Fail"
+  ret
+{.locals ()}
+}
+
+}
+}
+
+.namespace '$' {
+.class  private 'Globals' extends ['mscorlib']'System'.'Object'{
+
+.field static assembly string '$l'
+.field static assembly int32 '$g'
+.field static assembly class ['mscorlib']'System'.'Exception' '$cvef'
+.field static assembly string '$cvga'
+.field static assembly int32 '$cvgg'
+.field static assembly class ['mscorlib']'System'.'IO'.'TextWriter' '$cvgj'
+.method static assembly void '.cctor'() cil {
+.maxstack 3
+.zeroinit
+  newobj instance void '!'.'PrimUtils_'.'Char'.'Chr'::.ctor()
+  stsfld class ['mscorlib']'System'.'Exception' '$'.'Globals'::'$cvef'
+  ldc.i4.s 11
+  conv.u4
+  stloc.0
+  ldc.i4.1
+  ldloc.0
+  shl
+  stloc.1
+  ldloc.1
+  ldc.i4.1
+  sub.ovf
+  pop
+  ldc.i4.s 11
+  ldc.i4.1
+  sub.ovf
+  stloc.1
+  ldloc.1
+  conv.u4
+  stloc.0
+  ldc.i4.1
+  ldloc.0
+  shl
+  stloc.1
+  ldloc.1
+  ldc.i4.1
+  sub.ovf
+  stloc.1
+  ldloc.1
+  ldc.i4.s 52
+  add.ovf
+  stloc.2
+  ldloc.2
+  ldc.i4.1
+  sub.ovf
+  pop
+  ldc.i8 0x0000000000000040
+  conv.ovf.i4
+  stloc.2
+  ldloc.2
+  ldc.i4.1
+  sub.ovf
+  stloc.2
+  ldloc.2
+  ldloc.1
+  add.ovf
+  pop
+  call string ['mscorlib']'System'.'Environment'::'get_NewLine'()
+  stsfld string '$'.'Globals'::'$cvga'
+  ldsfld string '$'.'Globals'::'$cvga'
+  ldnull
+  ceq
+  stloc.3
+  ldloc.3
+  brtrue L_65
+  ldsfld string '$'.'Globals'::'$cvga'
+  ldc.i4.s -2147483648
+  callvirt instance char ['mscorlib']'System'.'String'::'get_Chars'(int32)
+  stloc.s 4
+  ldsfld string '$'.'Globals'::'$cvga'
+  callvirt instance int32 ['mscorlib']'System'.'String'::'get_Length'()
+  stloc.1
+  ldloc.1
+  dup
+  ldc.i4.1
+  bne.un L_63
+  pop
+  ldloc.s 4
+  ldc.i4 10
+  ceq
+  stloc.3
+  ldloc.3
+  brtrue L_62
+  ldloc.s 4
+  ldc.i4.s -1
+  ldc.i4.1
+  stsfld int32 '$'.'Globals'::'$cvgg'
+  pop
+  pop
+  br _cvgf
+L_62:
+  ldc.i4.s -1
+  ldc.i4.s -1
+  ldc.i4.s -2147483648
+  stsfld int32 '$'.'Globals'::'$cvgg'
+  pop
+  pop
+  br _cvgf
+L_63:
+  ldc.i4.2
+  bne.un L_64
+  ldsfld string '$'.'Globals'::'$cvga'
+  ldc.i4.1
+  callvirt instance char ['mscorlib']'System'.'String'::'get_Chars'(int32)
+  stloc.s 5
+  ldloc.s 4
+  ldloc.s 5
+  ldc.i4.2
+  stsfld int32 '$'.'Globals'::'$cvgg'
+  pop
+  pop
+  br _cvgf
+L_64:
+  ldstr " at TextIO:125.26-79"
+  stsfld string '$'.'Globals'::'$l'
+  ldstr "Unexpected line separator length"
+  newobj instance void '!'.'General'.'Fail'::.ctor(string)
+  throw
+_cvgf:
+  call class ['mscorlib']'System'.'IO'.'TextReader' ['mscorlib']'System'.'Console'::'get_In'()
+  pop
+  call class ['mscorlib']'System'.'IO'.'TextWriter' ['mscorlib']'System'.'Console'::'get_Out'()
+  stsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cvgj'
+  call class ['mscorlib']'System'.'IO'.'TextWriter' ['mscorlib']'System'.'Console'::'get_Error'()
+  pop
+  ret
+L_65:
+  ldstr " at TextIO:118.20-68"
+  stsfld string '$'.'Globals'::'$l'
+  ldstr "No line separator available"
+  newobj instance void '!'.'General'.'Fail'::.ctor(string)
+  throw
+{.locals ([0] unsigned int32 /*cvfu cvfr*/ ,
+         [1] int32 /*cvge 'Real.eoffset' cvfv cvft cvfs*/ ,
+         [2] int32 /*cvfz 'Real.large_precision' 'Real.meoffset'*/ ,
+         [3] bool /*cvkk cvkq*/ ,
+         [4] char /*'TextIO.c'*/ ,
+         [5] char /*cvkl*/ )}
+}
+.method static assembly void '$'() cil {
+.maxstack 0
+.zeroinit
+  ret
+{.locals ()}
+}
+.method static assembly void '.GCSafePoint'() managed noinlining {
+.maxstack 0
+.zeroinit
+  ret
+{.locals ()}
+}
+.method static assembly char 'PrimUtils_.chr'(int32 'cvei') cil {
+.maxstack 3
+.zeroinit
+  ldarg.0
+  ldc.i4.s -2147483648
+  clt
+  stloc.0
+  ldloc.0
+  brtrue L_15
+  ldarg.0
+  ldc.i4 65535
+  cgt
+  stloc.0
+  ldloc.0
+  brtrue L_14
+  ldarg.0
+  ret
+L_14:
+  ldstr " at PrimUtils_:579.9-18"
+  stsfld string '$'.'Globals'::'$l'
+  ldsfld class ['mscorlib']'System'.'Exception' '$'.'Globals'::'$cvef'
+  throw
+L_15:
+  ldstr " at PrimUtils_:579.9-18"
+  stsfld string '$'.'Globals'::'$l'
+  ldsfld class ['mscorlib']'System'.'Exception' '$'.'Globals'::'$cvef'
+  throw
+{.locals ([0] bool /*cvek cvej*/ )}
+}
+.method static assembly string 'Utils_.implode'(class '$'.'Tuple2_a' 'cvfd') cil {
+.maxstack 3
+.zeroinit
+  ldarg.0
+  ldnull
+  ceq
+  stloc.0
+  ldloc.0
+  brtrue L_18
+  ldarg.0
+  ldfld class '$'.'Tuple2_a' '$'.'Tuple2_a'::'_2'
+  ldnull
+  ceq
+  stloc.0
+  ldloc.0
+  brtrue L_17
+  newobj instance void ['mscorlib']'System'.'Text'.'StringBuilder'::.ctor()
+  stloc.1
+_cvfi:
+_cvfj:
+  ldarg.0
+  ldnull
+  ceq
+  stloc.0
+  ldloc.0
+  brtrue L_16
+  ldloc.1
+  ldarg.0
+  ldfld char '$'.'Tuple2_a'::'_1'
+  callvirt instance class ['mscorlib']'System'.'Text'.'StringBuilder' ['mscorlib']'System'.'Text'.'StringBuilder'::'Append'(char)
+  pop
+  ldarg.0
+  ldfld class '$'.'Tuple2_a' '$'.'Tuple2_a'::'_2'
+  starg.s 0
+  br _cvfj
+L_16:
+  ldloc.1
+  callvirt instance string ['mscorlib']'System'.'Text'.'StringBuilder'::'ToString'()
+  stloc.2
+  ldloc.2
+  ret
+L_17:
+  ldarg.0
+  ldfld char '$'.'Tuple2_a'::'_1'
+  call string ['mscorlib']'System'.'Char'::'ToString'(char)
+  stloc.2
+  ldloc.2
+  ret
+L_18:
+  ldstr ""
+  ret
+{.locals ([0] bool /*cvkn cvko cvkp*/ ,
+         [1] class ['mscorlib']'System'.'Text'.'StringBuilder' /*'Utils_.sb'*/ ,
+         [2] string /*cvfq cvfo*/ )}
+}
+.method static assembly void 'TextIO.print'(string 'cvgl') cil {
+.maxstack 3
+.zeroinit
+  ldsfld int32 '$'.'Globals'::'$cvgg'
+  ldc.i4.s -2147483648
+  ceq
+  stloc.0
+  ldloc.0
+  brtrue L_51
+  ldarg.0
+  callvirt instance int32 ['mscorlib']'System'.'String'::'get_Length'()
+  stloc.1
+  ldc.i4.s -2147483648
+  stloc.3
+_cvgs:
+_cvgt:
+  ldloc.3
+  ldloc.1
+  clt
+  stloc.0
+  ldloc.0
+  brtrue L_24
+L_19:
+  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cvgj'
+  callvirt instance void ['mscorlib']'System'.'IO'.'TextWriter'::'Flush'()
+  leave L_20
+L_20:
+  ret
+L_22:
+  stloc.2
+  ldstr " at TextIO:87.8-91.12"
+  stsfld string '$'.'Globals'::'$l'
+  ldstr "TextWriter"
+  ldloc.2
+  ldstr "flushOut"
+  newobj instance void '$'.'Tuple3_a'::.ctor(string,class ['mscorlib']'System'.'Exception',string)
+  newobj instance void '!'.'IO'.'Io'::.ctor(class '$'.'Tuple3_a')
+  throw
+L_23:
+L_21:
+  ret
+.try L_19 to L_20 catch ['mscorlib']'System'.'Exception' handler L_22 to L_23
+L_24:
+L_25:
+  ldarg.0
+  ldloc.3
+  callvirt instance char ['mscorlib']'System'.'String'::'get_Chars'(int32)
+  stloc.s 4
+  leave L_26
+L_26:
+  ldloc.s 4
+  ldc.i4 10
+  ceq
+  stloc.0
+  ldloc.0
+  brtrue L_37
+L_27:
+  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cvgj'
+  ldloc.s 4
+  callvirt instance void ['mscorlib']'System'.'IO'.'TextWriter'::'Write'(char)
+  leave L_28
+L_28:
+L_29:
+  ldloc.3
+  ldc.i4.1
+  add.ovf
+  stloc.3
+  leave L_30
+L_30:
+  br _cvgt
+L_32:
+  stloc.2
+  leave _cvgo
+L_33:
+L_31:
+  ret
+.try L_29 to L_30 catch ['mscorlib']'System'.'Exception' handler L_32 to L_33
+L_35:
+  stloc.2
+  leave _cvgo
+L_36:
+L_34:
+  ret
+.try L_27 to L_28 catch ['mscorlib']'System'.'Exception' handler L_35 to L_36
+L_37:
+L_38:
+  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cvgj'
+  ldsfld string '$'.'Globals'::'$cvga'
+  callvirt instance void ['mscorlib']'System'.'IO'.'TextWriter'::'Write'(string)
+  leave L_39
+L_39:
+L_40:
+  ldloc.3
+  ldc.i4.1
+  add.ovf
+  stloc.3
+  leave L_41
+L_41:
+  br _cvgt
+L_43:
+  stloc.2
+  leave _cvgo
+L_44:
+L_42:
+  ret
+.try L_40 to L_41 catch ['mscorlib']'System'.'Exception' handler L_43 to L_44
+L_46:
+  stloc.2
+  leave _cvgo
+L_47:
+L_45:
+  ret
+.try L_38 to L_39 catch ['mscorlib']'System'.'Exception' handler L_46 to L_47
+L_49:
+  stloc.2
+  leave _cvgo
+L_50:
+L_48:
+  ret
+.try L_25 to L_26 catch ['mscorlib']'System'.'Exception' handler L_49 to L_50
+_cvgo:
+  ldstr " at TextIO:87.8-91.12"
+  stsfld string '$'.'Globals'::'$l'
+  ldstr "TextWriter"
+  ldloc.2
+  ldstr "output"
+  newobj instance void '$'.'Tuple3_a'::.ctor(string,class ['mscorlib']'System'.'Exception',string)
+  newobj instance void '!'.'IO'.'Io'::.ctor(class '$'.'Tuple3_a')
+  throw
+L_51:
+L_52:
+  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cvgj'
+  ldarg.0
+  callvirt instance void ['mscorlib']'System'.'IO'.'TextWriter'::'Write'(string)
+  leave L_53
+L_53:
+L_54:
+  ldsfld class ['mscorlib']'System'.'IO'.'TextWriter' '$'.'Globals'::'$cvgj'
+  callvirt instance void ['mscorlib']'System'.'IO'.'TextWriter'::'Flush'()
+  leave L_55
+L_55:
+  ret
+L_57:
+  stloc.2
+  ldstr " at TextIO:87.8-91.12"
+  stsfld string '$'.'Globals'::'$l'
+  ldstr "TextWriter"
+  ldloc.2
+  ldstr "flushOut"
+  newobj instance void '$'.'Tuple3_a'::.ctor(string,class ['mscorlib']'System'.'Exception',string)
+  newobj instance void '!'.'IO'.'Io'::.ctor(class '$'.'Tuple3_a')
+  throw
+L_58:
+L_56:
+  ret
+.try L_54 to L_55 catch ['mscorlib']'System'.'Exception' handler L_57 to L_58
+L_60:
+  stloc.2
+  ldstr " at TextIO:87.8-91.12"
+  stsfld string '$'.'Globals'::'$l'
+  ldstr "TextWriter"
+  ldloc.2
+  ldstr "output"
+  newobj instance void '$'.'Tuple3_a'::.ctor(string,class ['mscorlib']'System'.'Exception',string)
+  newobj instance void '!'.'IO'.'Io'::.ctor(class '$'.'Tuple3_a')
+  throw
+L_61:
+L_59:
+  ret
+.try L_52 to L_53 catch ['mscorlib']'System'.'Exception' handler L_60 to L_61
+{.locals ([0] bool /*cvhb cvgv cvgm*/ ,
+         [1] int32 /*'CharVector.stop'*/ ,
+         [2] class ['mscorlib']'System'.'Exception' /*cvhi cvhl cvgz cvhf cvhg cvhc cvhd cvgw cvgp*/ ,
+         [3] int32 /*cvhh cvhe cvgu*/ ,
+         [4] char /*cvha*/ )}
+}
+
+}
+}
