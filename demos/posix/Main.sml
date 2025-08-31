@@ -24,6 +24,7 @@ structure Main = struct
       val {infd, outfd} = Posix.IO.pipe ()
       val () = print ("In: " ^ Int.toString infd ^ "\n")
       val () = print ("Out: " ^ Int.toString outfd ^ "\n")
+      val () = print ("Ctermid: " ^ Posix.ProcEnv.ctermid () ^ "\n")
     in
       ()
     end
